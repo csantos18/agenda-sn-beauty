@@ -140,7 +140,39 @@
           <p class="eyebrow">Confirmação</p>
           <h2>Resumo</h2>
           <dl id="bookingSummary"></dl>
+          <div class="confirmation-box" id="confirmationBox" hidden>
+            <strong>Agendamento recebido.</strong>
+            <p>Para agilizar a confirmação, envie os dados pelo WhatsApp do salão.</p>
+            <a class="whatsapp-button" id="bookingWhatsAppLink" href="https://wa.me/5561981561421" target="_blank" rel="noopener">Enviar no WhatsApp</a>
+          </div>
         </aside>
+      </section>
+
+      <section class="section policy-section" id="orientacoes">
+        <div class="section-heading">
+          <p class="eyebrow">Orientações</p>
+          <h2>Antes de confirmar</h2>
+          <p class="section-note">
+            O horário escolhido fica bloqueado após o envio do agendamento. A profissional pode confirmar detalhes pelo WhatsApp.
+          </p>
+        </div>
+        <div class="policy-grid">
+          <article>
+            <span>Confirmação</span>
+            <strong>Aguarde retorno</strong>
+            <p>Depois de agendar, a cliente pode chamar no WhatsApp para confirmar os dados.</p>
+          </article>
+          <article>
+            <span>Atrasos</span>
+            <strong>Avise com antecedência</strong>
+            <p>Em caso de imprevisto, fale com o salão para reorganizar o atendimento.</p>
+          </article>
+          <article>
+            <span>Horários</span>
+            <strong>Bloqueio automático</strong>
+            <p>Horários já agendados deixam de aparecer para novas clientes.</p>
+          </article>
+        </div>
       </section>
 
       <section class="section" id="agenda">
@@ -154,7 +186,11 @@
         <form class="admin-panel" id="adminForm">
           <label>
             PIN administrativo
-            <input id="adminPinInput" name="adminPinInput" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Digite o PIN do salao" />
+            <input id="adminPinInput" name="adminPinInput" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Digite o PIN do salão" />
+          </label>
+          <label>
+            Ver data
+            <input id="adminDateInput" name="adminDateInput" type="date" />
           </label>
           <button type="submit">Abrir painel</button>
           <button class="ghost-button" type="button" id="adminLockButton">Bloquear painel</button>
@@ -234,6 +270,7 @@
       </section>
     </main>
 
+    <a class="floating-whatsapp" href="https://wa.me/5561981561421" target="_blank" rel="noopener" aria-label="Chamar no WhatsApp">WhatsApp</a>
     <script src="script.js"></script>
   </body>
 </html>

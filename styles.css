@@ -258,6 +258,19 @@ button:hover {
   padding: clamp(18px, 4vw, 28px);
 }
 
+.confirmation-box {
+  margin-top: 18px;
+  border: 1px solid rgba(31, 143, 95, 0.22);
+  border-radius: 8px;
+  padding: 16px;
+  background: #f0fbf5;
+}
+
+.confirmation-box p {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
 label {
   display: grid;
   gap: 7px;
@@ -354,7 +367,7 @@ dd {
 
 .admin-panel {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto auto;
+  grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.6fr) auto auto;
   gap: 12px;
   align-items: end;
   margin-bottom: 16px;
@@ -460,6 +473,44 @@ dd {
   background: var(--soft);
 }
 
+.policy-section {
+  background: #ffffff;
+}
+
+.policy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.policy-grid article {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+  background: var(--white);
+}
+
+.policy-grid span,
+.policy-grid strong {
+  display: block;
+}
+
+.policy-grid span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.policy-grid strong {
+  margin-top: 7px;
+  font-size: 1.08rem;
+}
+
+.policy-grid p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .contact-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(170px, 1fr));
@@ -548,6 +599,27 @@ dd {
   background: #166f49;
 }
 
+.floating-whatsapp {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 20;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 0 16px;
+  background: #1f8f5f;
+  color: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 12px 28px rgba(31, 143, 95, 0.24);
+}
+
+.floating-whatsapp:hover {
+  background: #166f49;
+}
+
 .reviews-layout {
   display: grid;
   grid-template-columns: minmax(300px, 0.75fr) minmax(240px, 0.35fr);
@@ -617,6 +689,7 @@ dd {
 
   .services-grid,
   .reviews-list,
+  .policy-grid,
   .contact-grid {
     grid-template-columns: repeat(2, minmax(160px, 1fr));
   }
@@ -657,6 +730,7 @@ dd {
 
   .services-grid,
   .reviews-list,
+  .policy-grid,
   .contact-grid,
   .form-row {
     grid-template-columns: 1fr;

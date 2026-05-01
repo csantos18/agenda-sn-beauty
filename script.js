@@ -21,13 +21,17 @@ const appointmentsList = document.querySelector("#appointmentsList");
 const todayCount = document.querySelector("#todayCount");
 const adminForm = document.querySelector("#adminForm");
 const adminPinInput = document.querySelector("#adminPinInput");
+const adminDateInput = document.querySelector("#adminDateInput");
 const adminLockButton = document.querySelector("#adminLockButton");
 const adminStatus = document.querySelector("#adminStatus");
 const reviewForm = document.querySelector("#reviewForm");
 const reviewsList = document.querySelector("#reviewsList");
 const ratingScore = document.querySelector("#ratingScore");
 const ratingCount = document.querySelector("#ratingCount");
+const confirmationBox = document.querySelector("#confirmationBox");
+const bookingWhatsAppLink = document.querySelector("#bookingWhatsAppLink");
 const LOCAL_API_ORIGIN = "http://localhost:5175";
+const SALON_WHATSAPP = "5561981561421";
 
 function money(value) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -78,6 +82,40 @@ async function api(path, options = {}) {
 
 function showMessage(message) {
   alert(message);
+}
+
+function buildBookingWhatsAppUrl(appointment) {
+  const service = services.find((item) => item.id === Number(appointment.serviceId));
+  const message = [
+    "Olá! Fiz um agendamento pelo Agenda SN Beauty.",
+    "",
+    `Nome: ${appointment.client}`,
+    `Telefone: ${appointment.phone}`,
+    `Serviço: ${service ? service.name : "Selecionado no site"}`,
+    `Profissional: ${appointment.professional}`,
+    `Data: ${formatDate(appointment.date)}`,
+    `Horário: ${appointment.time}`,
+    `Pagamento: ${appointment.paymentMethod}`,
+    appointment.notes ? `Observações: ${appointment.notes}` : "",
+    "",
+    "Pode confirmar meu horário, por favor?",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return `https://wa.me/${SALON_WHATSAPP}?text=${encodeURIComponent(message)}`;
+}
+
+function showBookingConfirmation(appointment) {
+  if (!confirmationBox || !bookingWhatsAppLink) return;
+
+  bookingWhatsAppLink.href = buildBookingWhatsAppUrl(appointment);
+  confirmationBox.hidden = false;
+}
+
+function hideBookingConfirmation() {
+  if (!confirmationBox) return;
+  confirmationBox.hidden = true;
 }
 
 function updateAdminStatus(message) {
@@ -214,10 +252,12 @@ function renderAppointments() {
     return;
   }
 
-  const sorted = [...appointments].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+  const selectedAdminDate = adminDateInput.value || new Date().toISOString().slice(0, 10);
+  const visibleAppointments = appointments.filter((appointment) => appointment.date === selectedAdminDate);
+  const sorted = [...visibleAppointments].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
   if (!sorted.length) {
-    appointmentsList.innerHTML = '<div class="empty-state">Nenhum agendamento registrado.</div>';
-    todayCount.textContent = "0 horarios";
+    appointmentsList.innerHTML = `<div class="empty-state">Nenhum agendamento registrado para ${formatDate(selectedAdminDate)}.</div>`;
+    todayCount.textContent = "0 horários";
     return;
   }
 
@@ -234,6 +274,11 @@ function renderAppointments() {
           </div>
           <div class="appointment-actions">
             <span class="status ${escapeHtml(appointment.status)}">${escapeHtml(appointment.status)}</span>
+            ${
+              appointment.status !== "cancelado" && appointment.status !== "concluido"
+                ? `<button class="secondary-button" type="button" data-action="complete" data-id="${appointment.id}">Concluir</button>`
+                : ""
+            }
             <button class="secondary-button" type="button" data-action="reschedule" data-id="${appointment.id}">Remarcar</button>
             <button class="ghost-button" type="button" data-action="cancel" data-id="${appointment.id}">Desmarcar</button>
           </div>
@@ -242,9 +287,7 @@ function renderAppointments() {
     )
     .join("");
 
-  const today = new Date().toISOString().slice(0, 10);
-  const totalToday = appointments.filter((appointment) => appointment.date === today).length;
-  todayCount.textContent = `${totalToday} horários`;
+  todayCount.textContent = `${sorted.length} horários`;
 }
 
 function renderReviews(average) {
@@ -268,6 +311,9 @@ function setInitialDate() {
   const today = new Date().toISOString().slice(0, 10);
   dateInput.value = today;
   dateInput.min = today;
+  if (adminDateInput) {
+    adminDateInput.value = today;
+  }
 }
 
 async function loadAppointments() {
@@ -308,18 +354,20 @@ bookingForm.addEventListener("submit", async (event) => {
 
   try {
     if (editingAppointmentId) {
-      await api(`/api/appointments/${editingAppointmentId}/reschedule`, {
+      const updatedAppointment = await api(`/api/appointments/${editingAppointmentId}/reschedule`, {
         method: "PATCH",
         admin: true,
         body: JSON.stringify(payload),
       });
+      showBookingConfirmation(updatedAppointment);
       showMessage("Agendamento remarcado com sucesso.");
     } else {
-      await api("/api/appointments", {
+      const createdAppointment = await api("/api/appointments", {
         method: "POST",
         body: JSON.stringify(payload),
       });
-      showMessage("Agendamento confirmado com sucesso.");
+      showBookingConfirmation({ ...payload, ...createdAppointment });
+      showMessage("Agendamento confirmado com sucesso. Aguarde confirmação da profissional. Você também pode enviar os dados pelo WhatsApp.");
     }
 
     resetBookingForm();
@@ -345,6 +393,19 @@ appointmentsList.addEventListener("click", async (event) => {
     try {
       await api(`/api/appointments/${id}/cancel`, { method: "PATCH", admin: true });
       showMessage("Agendamento desmarcado com sucesso.");
+      await loadAppointments();
+      await loadAvailability();
+      renderSummary();
+    } catch (error) {
+      showMessage(error.message);
+    }
+    return;
+  }
+
+  if (button.dataset.action === "complete") {
+    try {
+      await api(`/api/appointments/${id}/complete`, { method: "PATCH", admin: true });
+      showMessage("Agendamento marcado como concluído.");
       await loadAppointments();
       await loadAvailability();
       renderSummary();
@@ -423,6 +484,7 @@ reviewForm.addEventListener("submit", async (event) => {
 
 [serviceSelect, professionalSelect, paymentSelect, dateInput, timeSelect, notesInput].forEach((element) => {
   element.addEventListener("change", async () => {
+    hideBookingConfirmation();
     if (element === professionalSelect || element === dateInput) {
       await loadAvailability();
     }
@@ -432,6 +494,8 @@ reviewForm.addEventListener("submit", async (event) => {
     renderSummary();
   });
 });
+
+adminDateInput.addEventListener("change", renderAppointments);
 
 async function init() {
   try {

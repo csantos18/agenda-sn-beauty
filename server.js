@@ -4,7 +4,9 @@ const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 5175;
-const DB_PATH = path.join(__dirname, "database.json");
+const DATA_DIR = process.env.DATA_DIR || __dirname;
+const DB_PATH = path.join(DATA_DIR, "database.json");
+const SEED_DB_PATH = path.join(__dirname, "database.json");
 const ADMIN_PIN = process.env.ADMIN_PIN;
 const PUBLIC_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 40 });
 const ADMIN_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 80 });
@@ -21,16 +23,28 @@ app.use(express.json({ limit: "20kb" }));
 app.use(express.static(__dirname));
 
 if (!ADMIN_PIN) {
-  console.warn("ADMIN_PIN nao configurado. O painel administrativo ficara bloqueado.");
+  console.warn("ADMIN_PIN não configurado. O painel administrativo ficará bloqueado.");
 }
 
 async function readDb() {
+  await ensureDb();
   const raw = await fs.readFile(DB_PATH, "utf-8");
   return JSON.parse(raw);
 }
 
 async function writeDb(db) {
+  await ensureDb();
   await fs.writeFile(DB_PATH, `${JSON.stringify(db, null, 2)}\n`, "utf-8");
+}
+
+async function ensureDb() {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+
+  try {
+    await fs.access(DB_PATH);
+  } catch {
+    await fs.copyFile(SEED_DB_PATH, DB_PATH);
+  }
 }
 
 function nextId(items) {
@@ -105,7 +119,7 @@ function requireAdmin(req, res, next) {
   }
 
   if (req.get("x-admin-pin") !== ADMIN_PIN) {
-    res.status(401).json({ error: "Acesso administrativo nao autorizado." });
+    res.status(401).json({ error: "Acesso administrativo não autorizado." });
     return;
   }
 
@@ -184,7 +198,7 @@ function validateAppointment(payload, db, currentId) {
   }
 
   if (!isISODate(payload.date)) {
-    return "Data invalida.";
+    return "Data inválida.";
   }
 
   if (payload.date < todayISO()) {
@@ -237,7 +251,7 @@ app.get("/api/availability", async (req, res) => {
   }
 
   if (!isISODate(date)) {
-    res.status(400).json({ error: "Data invalida." });
+    res.status(400).json({ error: "Data inválida." });
     return;
   }
 
@@ -301,6 +315,21 @@ app.patch("/api/appointments/:id/cancel", requireAdmin, ADMIN_WRITE_LIMIT, async
   }
 
   appointment.status = "cancelado";
+  await writeDb(db);
+  res.json(enrichAppointment(appointment, db.services));
+});
+
+app.patch("/api/appointments/:id/complete", requireAdmin, ADMIN_WRITE_LIMIT, async (req, res) => {
+  const db = await readDb();
+  const id = Number(req.params.id);
+  const appointment = db.appointments.find((item) => item.id === id);
+
+  if (!appointment) {
+    res.status(404).json({ error: "Agendamento não encontrado." });
+    return;
+  }
+
+  appointment.status = "concluido";
   await writeDb(db);
   res.json(enrichAppointment(appointment, db.services));
 });
