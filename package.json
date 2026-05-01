@@ -1,0 +1,18 @@
+{
+  "name": "agenda-sn-beauty",
+  "version": "1.0.0",
+  "description": "Aplicativo de agendamento criado por Sarah Neves para o Jacinta Santos Beauty Studio.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node --check server.js && node --check script.js",
+    "render-start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
