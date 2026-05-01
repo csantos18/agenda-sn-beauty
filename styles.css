@@ -88,13 +88,13 @@ a {
 }
 
 .hero::before {
-  background: url("assets/beauty-banner.svg") center/cover;
-  filter: saturate(0.98) brightness(1.02);
+  background: url("https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1600&q=80") center/cover;
+  filter: grayscale(0.22) sepia(0.04) hue-rotate(240deg) saturate(0.92) brightness(1.05);
   transform: scale(1.02);
 }
 
 .hero::after {
-  background: linear-gradient(110deg, rgba(40, 27, 48, 0.78), rgba(108, 52, 131, 0.46), rgba(142, 68, 173, 0.16));
+  background: linear-gradient(110deg, rgba(40, 27, 48, 0.82), rgba(108, 52, 131, 0.54), rgba(142, 68, 173, 0.24));
 }
 
 .hero > * {
