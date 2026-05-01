@@ -8,6 +8,7 @@ let editingAppointmentId = null;
 
 const servicesGrid = document.querySelector("#servicesGrid");
 const serviceSelect = document.querySelector("#serviceSelect");
+const serviceDetails = document.querySelector("#serviceDetails");
 const timeSelect = document.querySelector("#timeSelect");
 const dateInput = document.querySelector("#dateInput");
 const professionalSelect = document.querySelector("#professionalSelect");
@@ -54,7 +55,7 @@ function renderServices() {
       (service) => `
         <article class="service-card">
           <h3>${service.name}</h3>
-          <p>${service.duration} minutos de atendimento personalizado.</p>
+          <p>${service.description}</p>
           <div class="service-meta">
             <span>${money(service.price)}</span>
             <span>${service.duration} min</span>
@@ -64,9 +65,13 @@ function renderServices() {
     )
     .join("");
 
-  serviceSelect.innerHTML = services
-    .map((service) => `<option value="${service.id}">${service.name} - ${money(service.price)}</option>`)
-    .join("");
+  serviceSelect.innerHTML = [
+    '<option value="">Selecione o serviço</option>',
+    ...services.map(
+      (service) => `<option value="${service.id}">${service.name} - ${service.duration} min - ${money(service.price)}</option>`,
+    ),
+  ].join("");
+  renderServiceDetails();
 }
 
 function renderProfessionals() {
@@ -102,17 +107,39 @@ async function loadAvailability() {
 
 function renderTimes() {
   const blocked = unavailableTimes();
-  timeSelect.innerHTML = availableTimes
-    .map((time) => {
+  if (!availableTimes.length) {
+    timeSelect.innerHTML = '<option value="">Não há horários disponíveis para esta data</option>';
+    return;
+  }
+
+  timeSelect.innerHTML = [
+    '<option value="">Selecione o horário</option>',
+    ...availableTimes.map((time) => {
       const disabled = blocked.includes(time) ? "disabled" : "";
       const label = blocked.includes(time) ? `${time} indisponível` : time;
       return `<option value="${time}" ${disabled}>${label}</option>`;
-    })
-    .join("");
+    }),
+  ].join("");
 }
 
 function selectedService() {
-  return services.find((service) => service.id === Number(serviceSelect.value)) || services[0];
+  return services.find((service) => service.id === Number(serviceSelect.value));
+}
+
+function renderServiceDetails() {
+  const service = selectedService();
+  if (!serviceDetails) return;
+
+  if (!service) {
+    serviceDetails.innerHTML = "Escolha um serviço para ver descrição, duração e valor antes de confirmar.";
+    return;
+  }
+
+  serviceDetails.innerHTML = `
+    <strong>${service.name}</strong>
+    <span>${service.description}</span>
+    <small>${service.duration} min | ${money(service.price)}</small>
+  `;
 }
 
 function currentSummary() {
@@ -302,6 +329,9 @@ reviewForm.addEventListener("submit", async (event) => {
   element.addEventListener("change", async () => {
     if (element === professionalSelect || element === dateInput) {
       await loadAvailability();
+    }
+    if (element === serviceSelect) {
+      renderServiceDetails();
     }
     renderSummary();
   });

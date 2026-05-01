@@ -1,10 +1,10 @@
 # Agenda SN Beauty
 
-Aplicativo de agendamento criado por **Sarah Neves** para o **Jacinta Santos Beauty Studio**, com front-end responsivo e back-end em Node.js/Express.
+Aplicativo de agendamento criado para o **Sarah Neves Beauty Studio**, com front-end responsivo e back-end em Node.js/Express.
 
 ## Recursos
 
-- Catálogo de serviços com preço e duração.
+- Catálogo de serviços com preço, duração e descrição.
 - Agendamento com cliente, telefone, serviço, profissional, data e horário.
 - Validação para evitar dois agendamentos no mesmo horário/profissional.
 - Cancelamento e remarcação de atendimentos.
@@ -13,7 +13,6 @@ Aplicativo de agendamento criado por **Sarah Neves** para o **Jacinta Santos Bea
 - Campo de observações para preferências, alergias ou cuidados específicos.
 - Combo especial de Dia das Mães.
 - Persistência em `database.json`.
-- PRD do produto dentro da página.
 
 ## Como rodar
 

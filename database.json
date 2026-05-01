@@ -2,124 +2,107 @@
   "services": [
     {
       "id": 1,
-      "name": "Corte feminino",
-      "price": 60,
-      "duration": 45
+      "name": "Manicure",
+      "price": 35,
+      "duration": 40,
+      "description": "Cuidado das unhas das mãos com lixamento, cutícula e esmaltação."
     },
     {
       "id": 2,
-      "name": "Escova",
-      "price": 70,
-      "duration": 40
+      "name": "Pedicure",
+      "price": 40,
+      "duration": 45,
+      "description": "Cuidado das unhas dos pés com limpeza, lixamento, cutícula e esmaltação."
     },
     {
       "id": 3,
-      "name": "Hidratação",
-      "price": 75,
-      "duration": 60
+      "name": "Manicure e pedicure",
+      "price": 70,
+      "duration": 85,
+      "description": "Atendimento completo para mãos e pés no mesmo horário."
     },
     {
       "id": 4,
-      "name": "Finalização para cachos",
-      "price": 85,
-      "duration": 70
+      "name": "Banho de gel",
+      "price": 90,
+      "duration": 90,
+      "description": "Camada de gel sobre a unha natural para mais resistência, brilho e acabamento."
     },
     {
       "id": 5,
-      "name": "Corte para cabelos cacheados",
-      "price": 90,
-      "duration": 75
+      "name": "Alongamento de unhas",
+      "price": 120,
+      "duration": 110,
+      "description": "Alongamento para aumentar o tamanho das unhas com acabamento personalizado."
     },
     {
       "id": 6,
-      "name": "Coloração",
-      "price": 130,
-      "duration": 120
+      "name": "Design de sobrancelhas",
+      "price": 45,
+      "duration": 40,
+      "description": "Modelagem das sobrancelhas para harmonizar o olhar e limpar o desenho."
     },
     {
       "id": 7,
-      "name": "Manicure",
-      "price": 35,
-      "duration": 40
+      "name": "Escova",
+      "price": 70,
+      "duration": 40,
+      "description": "Finalização com escova para deixar os fios alinhados, leves e com brilho."
     },
     {
       "id": 8,
-      "name": "Pedicure",
-      "price": 40,
-      "duration": 45
+      "name": "Hidratação",
+      "price": 75,
+      "duration": 60,
+      "description": "Tratamento para repor água, maciez e brilho em cabelos ressecados ou sem vida."
     },
     {
       "id": 9,
-      "name": "Alongamento de unhas",
-      "price": 120,
-      "duration": 110
+      "name": "Corte feminino",
+      "price": 60,
+      "duration": 45,
+      "description": "Corte para renovar o visual, ajustar pontas, formato e caimento do cabelo."
     },
     {
       "id": 10,
-      "name": "Combo cabelo + unhas",
-      "price": 150,
-      "duration": 150
+      "name": "Corte para cabelos cacheados",
+      "price": 90,
+      "duration": 75,
+      "description": "Corte pensado para cabelos cacheados, respeitando curvatura, volume e movimento."
     },
     {
       "id": 11,
+      "name": "Finalização para cachos",
+      "price": 85,
+      "duration": 70,
+      "description": "Definição dos cachos com cuidado para reduzir frizz e valorizar o volume natural."
+    },
+    {
+      "id": 12,
+      "name": "Coloração",
+      "price": 130,
+      "duration": 120,
+      "description": "Aplicação ou retoque de cor com avaliação dos fios antes do atendimento."
+    },
+    {
+      "id": 13,
+      "name": "Combo cabelo + unhas",
+      "price": 150,
+      "duration": 150,
+      "description": "Pacote com cuidado de cabelo e unhas para um atendimento mais completo."
+    },
+    {
+      "id": 14,
       "name": "Combo Dia das Mães",
       "price": 170,
-      "duration": 150
+      "duration": 150,
+      "description": "Pacote especial com cabelo e unhas, ideal para presentear ou se cuidar."
     }
   ],
   "professionals": [
     "Jacinta Santos"
   ],
-  "appointments": [
-    {
-      "id": 1,
-      "client": "Marina Costa",
-      "phone": "(11) 99999-1020",
-      "serviceId": 1,
-      "professional": "Jacinta Santos",
-      "paymentMethod": "Pix",
-      "notes": "Prefere acabamento natural.",
-      "date": "2026-04-30",
-      "time": "09:00",
-      "status": "confirmado"
-    },
-    {
-      "id": 2,
-      "client": "Julia Santos",
-      "phone": "(11) 97777-2040",
-      "serviceId": 7,
-      "professional": "Jacinta Santos",
-      "paymentMethod": "Cartão de débito",
-      "notes": "Cliente gosta de esmalte claro.",
-      "date": "2026-04-30",
-      "time": "11:00",
-      "status": "agendado"
-    },
-    {
-      "id": 3,
-      "client": "Renata Lima",
-      "phone": "(11) 96666-3070",
-      "serviceId": 11,
-      "professional": "Jacinta Santos",
-      "paymentMethod": "Cartão de crédito",
-      "notes": "Atendimento especial para o Dia das Mães.",
-      "date": "2026-04-30",
-      "time": "14:00",
-      "status": "concluído"
-    },
-    {
-      "id": 4,
-      "client": "Paula Mendes",
-      "phone": "(11) 95555-4080",
-      "serviceId": 8,
-      "professional": "Jacinta Santos",
-      "paymentMethod": "Dinheiro",
-      "notes": "",
-      "date": "2026-04-30",
-      "time": "16:00",
-      "status": "cancelado"
-    }
-  ],
+  "appointments": [],
   "reviews": [
     {
       "id": 1,

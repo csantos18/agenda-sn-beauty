@@ -6,10 +6,10 @@ const app = express();
 const PORT = process.env.PORT || 5175;
 const DB_PATH = path.join(__dirname, "database.json");
 
-const weekdayTimes = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
-const shortDayTimes = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00"];
+const weekdayTimes = buildTimes("08:00", "18:00", 30);
+const shortDayTimes = buildTimes("08:00", "14:00", 30);
 const paymentMethods = ["Pix", "Dinheiro", "Cartão de débito", "Cartão de crédito"];
-const holidayDates = [];
+const holidayDates = ["2026-01-01", "2026-04-03", "2026-04-21", "2026-05-01", "2026-09-07", "2026-10-12", "2026-11-02", "2026-11-15", "2026-12-25"];
 
 app.use(express.json());
 app.use(express.static(__dirname));
@@ -29,6 +29,21 @@ function nextId(items) {
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function toMinutes(time) {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function buildTimes(start, end, stepMinutes) {
+  const times = [];
+  for (let current = toMinutes(start); current <= toMinutes(end); current += stepMinutes) {
+    const hours = String(Math.floor(current / 60)).padStart(2, "0");
+    const minutes = String(current % 60).padStart(2, "0");
+    times.push(`${hours}:${minutes}`);
+  }
+  return times;
 }
 
 function isShortDay(date) {
@@ -115,7 +130,8 @@ app.get("/api/availability", (req, res) => {
     res.status(400).json({ error: "Informe a data." });
     return;
   }
-  res.json({ times: allowedTimes(date), shortDay: isShortDay(date) });
+  const times = allowedTimes(date);
+  res.json({ times, shortDay: isShortDay(date), closed: times.length === 0 });
 });
 
 app.get("/api/appointments", async (req, res) => {
@@ -172,14 +188,14 @@ app.patch("/api/appointments/:id/reschedule", async (req, res) => {
 
   const payload = {
     ...appointment,
-    serviceId: Number(req.body.serviceId ?? appointment.serviceId),
-    professional: req.body.professional ?? appointment.professional,
-    date: req.body.date ?? appointment.date,
-    time: req.body.time ?? appointment.time,
-    client: req.body.client ?? appointment.client,
-    phone: req.body.phone ?? appointment.phone,
-    paymentMethod: req.body.paymentMethod ?? appointment.paymentMethod,
-    notes: req.body.notes ?? appointment.notes ?? "",
+    serviceId: Number(req.body.serviceId || appointment.serviceId),
+    professional: req.body.professional || appointment.professional,
+    date: req.body.date || appointment.date,
+    time: req.body.time || appointment.time,
+    client: req.body.client || appointment.client,
+    phone: req.body.phone || appointment.phone,
+    paymentMethod: req.body.paymentMethod || appointment.paymentMethod,
+    notes: req.body.notes?.trim() || "",
     status: "agendado",
   };
   const error = validateAppointment(payload, db, id);
