@@ -7,12 +7,13 @@ Aplicativo de agendamento criado para o **Sarah Neves Beauty Studio**, com front
 - Catálogo de serviços com preço, duração e descrição.
 - Agendamento com cliente, telefone, serviço, profissional, data e horário.
 - Validação para evitar dois agendamentos no mesmo horário/profissional.
-- Cancelamento e remarcação de atendimentos.
+- Painel administrativo protegido por PIN.
+- Filtro por data no painel.
+- Cancelamento, remarcação e conclusão de atendimentos.
 - Avaliações das clientes com média de notas.
-- Forma de pagamento preferida: Pix, dinheiro, cartão de débito ou cartão de crédito.
-- Campo de observações para preferências, alergias ou cuidados específicos.
-- Combo especial de Dia das Mães.
-- Persistência em `database.json`.
+- Confirmação do agendamento por WhatsApp com mensagem pronta.
+- Botão fixo de WhatsApp para contato rápido.
+- Seção de orientações para confirmação, atraso e bloqueio de horários.
 
 ## Como rodar
 
@@ -27,82 +28,44 @@ Depois acesse:
 http://localhost:5175
 ```
 
+## Persistência
+
+O app funciona de duas formas:
+
+- **Supabase**: usado quando `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` estão configuradas.
+- **Arquivo local**: fallback em `database.json`, útil para desenvolvimento e testes.
+
+No Render Free, use Supabase para não perder agendamentos e avaliações em reinícios/deploys.
+
+## Configurar Supabase
+
+1. Crie um projeto no Supabase.
+2. Abra o SQL Editor.
+3. Execute o conteúdo de `supabase-schema.sql`.
+4. No Render, configure as variáveis de ambiente:
+
+```text
+ADMIN_PIN=seu-pin-administrativo
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
+```
+
+Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas no servidor/Render.
+
 ## Rotas da API
 
 - `GET /api/health`
 - `GET /api/services`
 - `GET /api/professionals`
 - `GET /api/payment-methods`
-- `GET /api/availability?date=AAAA-MM-DD`
-- `GET /api/appointments`
+- `GET /api/availability?date=AAAA-MM-DD&professional=Jacinta%20Santos`
+- `GET /api/appointments` com header `x-admin-pin`
 - `POST /api/appointments`
-- `PATCH /api/appointments/:id/cancel`
-- `PATCH /api/appointments/:id/reschedule`
+- `PATCH /api/appointments/:id/cancel` com header `x-admin-pin`
+- `PATCH /api/appointments/:id/complete` com header `x-admin-pin`
+- `PATCH /api/appointments/:id/reschedule` com header `x-admin-pin`
 - `GET /api/reviews`
 - `POST /api/reviews`
-
-## Exemplos de requisições
-
-Criar agendamento:
-
-```http
-POST /api/appointments
-Content-Type: application/json
-```
-
-```json
-{
-  "client": "Ana Souza",
-  "phone": "(61) 90000-0000",
-  "serviceId": 5,
-  "professional": "Jacinta Santos",
-  "paymentMethod": "Pix",
-  "notes": "Preferência por esmalte claro.",
-  "date": "2026-05-04",
-  "time": "10:00"
-}
-```
-
-Cancelar agendamento:
-
-```http
-PATCH /api/appointments/1/cancel
-```
-
-Remarcar agendamento:
-
-```http
-PATCH /api/appointments/1/reschedule
-Content-Type: application/json
-```
-
-```json
-{
-  "client": "Ana Souza",
-  "phone": "(61) 90000-0000",
-  "serviceId": 4,
-  "professional": "Jacinta Santos",
-  "paymentMethod": "Cartão de crédito",
-  "notes": "Cuidado especial com cachos.",
-  "date": "2026-05-05",
-  "time": "14:00"
-}
-```
-
-Criar avaliação:
-
-```http
-POST /api/reviews
-Content-Type: application/json
-```
-
-```json
-{
-  "name": "Ana Souza",
-  "rating": 5,
-  "comment": "O aplicativo facilitou muito o agendamento."
-}
-```
 
 ## Regras de negócio
 
@@ -110,8 +73,8 @@ Content-Type: application/json
 - Datas antigas não podem ser usadas para novos agendamentos.
 - Segunda a sábado: 08:00 às 18:00.
 - Domingos e feriados: 08:00 às 14:00.
-- Cancelamentos devem ser feitos com pelo menos 2 horas de antecedência.
-- O pagamento é realizado presencialmente no salão após o atendimento.
+- Cancelamentos devem ser combinados com o salão.
+- O pagamento é realizado presencialmente após o atendimento.
 - Formas de pagamento aceitas: Pix, dinheiro, cartão de débito e cartão de crédito.
 - Observações da cliente ficam salvas junto ao agendamento.
 - Avaliações aceitam notas de 1 a 5.

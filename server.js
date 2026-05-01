@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require("fs/promises");
 const path = require("path");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 const PORT = process.env.PORT || 5175;
@@ -8,6 +9,14 @@ const DATA_DIR = process.env.DATA_DIR || __dirname;
 const DB_PATH = path.join(DATA_DIR, "database.json");
 const SEED_DB_PATH = path.join(__dirname, "database.json");
 const ADMIN_PIN = process.env.ADMIN_PIN;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase =
+  SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      })
+    : null;
 const PUBLIC_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 40 });
 const ADMIN_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 80 });
 
@@ -27,12 +36,21 @@ if (!ADMIN_PIN) {
 }
 
 async function readDb() {
+  if (supabase) {
+    return readSupabaseDb();
+  }
+
   await ensureDb();
   const raw = await fs.readFile(DB_PATH, "utf-8");
   return JSON.parse(raw);
 }
 
 async function writeDb(db) {
+  if (supabase) {
+    await writeSupabaseDb(db);
+    return;
+  }
+
   await ensureDb();
   await fs.writeFile(DB_PATH, `${JSON.stringify(db, null, 2)}\n`, "utf-8");
 }
@@ -49,6 +67,80 @@ async function ensureDb() {
 
 function nextId(items) {
   return items.length ? Math.max(...items.map((item) => Number(item.id))) + 1 : 1;
+}
+
+async function readSeedDb() {
+  const raw = await fs.readFile(SEED_DB_PATH, "utf-8");
+  return JSON.parse(raw);
+}
+
+function fromSupabaseAppointment(row) {
+  return {
+    id: row.id,
+    client: row.client,
+    phone: row.phone,
+    serviceId: row.service_id,
+    professional: row.professional,
+    date: row.date,
+    time: row.time,
+    paymentMethod: row.payment_method,
+    notes: row.notes || "",
+    status: row.status,
+  };
+}
+
+function toSupabaseAppointment(appointment) {
+  return {
+    id: appointment.id,
+    client: appointment.client,
+    phone: appointment.phone,
+    service_id: appointment.serviceId,
+    professional: appointment.professional,
+    date: appointment.date,
+    time: appointment.time,
+    payment_method: appointment.paymentMethod,
+    notes: appointment.notes || "",
+    status: appointment.status,
+  };
+}
+
+async function readSupabaseDb() {
+  const seed = await readSeedDb();
+  const [{ data: appointments, error: appointmentsError }, { data: reviews, error: reviewsError }] =
+    await Promise.all([
+      supabase.from("appointments").select("*").order("date", { ascending: true }).order("time", { ascending: true }),
+      supabase.from("reviews").select("*").order("id", { ascending: false }),
+    ]);
+
+  if (appointmentsError) throw appointmentsError;
+  if (reviewsError) throw reviewsError;
+
+  return {
+    ...seed,
+    appointments: (appointments || []).map(fromSupabaseAppointment),
+    reviews: reviews || [],
+  };
+}
+
+async function writeSupabaseDb(db) {
+  const { error: deleteAppointmentsError } = await supabase
+    .from("appointments")
+    .delete()
+    .not("id", "is", null);
+  if (deleteAppointmentsError) throw deleteAppointmentsError;
+
+  const { error: deleteReviewsError } = await supabase.from("reviews").delete().not("id", "is", null);
+  if (deleteReviewsError) throw deleteReviewsError;
+
+  if (db.appointments.length) {
+    const { error } = await supabase.from("appointments").insert(db.appointments.map(toSupabaseAppointment));
+    if (error) throw error;
+  }
+
+  if (db.reviews.length) {
+    const { error } = await supabase.from("reviews").insert(db.reviews);
+    if (error) throw error;
+  }
 }
 
 function todayISO() {
