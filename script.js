@@ -27,6 +27,7 @@ const reviewForm = document.querySelector("#reviewForm");
 const reviewsList = document.querySelector("#reviewsList");
 const ratingScore = document.querySelector("#ratingScore");
 const ratingCount = document.querySelector("#ratingCount");
+const LOCAL_API_ORIGIN = "http://localhost:5175";
 
 function money(value) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -49,9 +50,20 @@ function adminHeaders() {
   return adminPin ? { "x-admin-pin": adminPin } : {};
 }
 
+function apiUrl(path) {
+  const isLocalHost = ["localhost", "127.0.0.1", ""].includes(window.location.hostname);
+  const isNodeServer = window.location.port === "5175";
+
+  if (window.location.protocol === "file:" || (isLocalHost && !isNodeServer)) {
+    return `${LOCAL_API_ORIGIN}${path}`;
+  }
+
+  return path;
+}
+
 async function api(path, options = {}) {
   const { admin = false, headers = {}, ...fetchOptions } = options;
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     headers: { "Content-Type": "application/json", ...(admin ? adminHeaders() : {}), ...headers },
     ...fetchOptions,
   });

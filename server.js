@@ -15,6 +15,7 @@ const paymentMethods = ["Pix", "Dinheiro", "Cartão de débito", "Cartão de cr�
 const holidayDates = ["2026-01-01", "2026-04-03", "2026-04-21", "2026-05-01", "2026-09-07", "2026-10-12", "2026-11-02", "2026-11-15", "2026-12-25"];
 
 app.set("trust proxy", 1);
+app.use(localDevCors);
 app.use(securityHeaders);
 app.use(express.json({ limit: "20kb" }));
 app.use(express.static(__dirname));
@@ -74,6 +75,26 @@ function securityHeaders(req, res, next) {
     "Content-Security-Policy",
     "default-src 'self'; img-src 'self' https://images.unsplash.com data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
   );
+  next();
+}
+
+function localDevCors(req, res, next) {
+  const origin = req.get("origin");
+  const isLocalDevOrigin =
+    origin === "null" || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin || "");
+
+  if (isLocalDevOrigin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-admin-pin");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
+  }
+
+  if (req.method === "OPTIONS") {
+    res.sendStatus(204);
+    return;
+  }
+
   next();
 }
 
