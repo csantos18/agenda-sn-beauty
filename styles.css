@@ -352,6 +352,37 @@ dd {
   gap: 12px;
 }
 
+.admin-panel {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--white);
+}
+
+.admin-panel label {
+  margin: 0;
+}
+
+.admin-panel p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.empty-state {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 18px;
+  background: var(--white);
+  color: var(--muted);
+}
+
 .appointment-card {
   display: grid;
   grid-template-columns: 90px minmax(0, 1fr) auto;
@@ -632,6 +663,10 @@ dd {
   }
 
   .appointment-card {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-panel {
     grid-template-columns: 1fr;
   }
 

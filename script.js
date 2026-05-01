@@ -5,6 +5,7 @@ let appointments = [];
 let reviews = [];
 let availableTimes = [];
 let editingAppointmentId = null;
+let adminPin = sessionStorage.getItem("adminPin") || "";
 
 const servicesGrid = document.querySelector("#servicesGrid");
 const serviceSelect = document.querySelector("#serviceSelect");
@@ -18,6 +19,10 @@ const bookingSummary = document.querySelector("#bookingSummary");
 const bookingForm = document.querySelector("#bookingForm");
 const appointmentsList = document.querySelector("#appointmentsList");
 const todayCount = document.querySelector("#todayCount");
+const adminForm = document.querySelector("#adminForm");
+const adminPinInput = document.querySelector("#adminPinInput");
+const adminLockButton = document.querySelector("#adminLockButton");
+const adminStatus = document.querySelector("#adminStatus");
 const reviewForm = document.querySelector("#reviewForm");
 const reviewsList = document.querySelector("#reviewsList");
 const ratingScore = document.querySelector("#ratingScore");
@@ -31,10 +36,24 @@ function formatDate(value) {
   return new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR");
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function adminHeaders() {
+  return adminPin ? { "x-admin-pin": adminPin } : {};
+}
+
 async function api(path, options = {}) {
+  const { admin = false, headers = {}, ...fetchOptions } = options;
   const response = await fetch(path, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-    ...options,
+    headers: { "Content-Type": "application/json", ...(admin ? adminHeaders() : {}), ...headers },
+    ...fetchOptions,
   });
   const data = await response.json().catch(() => ({}));
 
@@ -49,13 +68,19 @@ function showMessage(message) {
   alert(message);
 }
 
+function updateAdminStatus(message) {
+  adminStatus.textContent =
+    message || (adminPin ? "Painel administrativo liberado neste navegador." : "Painel protegido. Apenas a profissional deve acessar a agenda completa.");
+  adminPinInput.value = adminPin ? "********" : "";
+}
+
 function renderServices() {
   servicesGrid.innerHTML = services
     .map(
       (service) => `
         <article class="service-card">
-          <h3>${service.name}</h3>
-          <p>${service.description}</p>
+          <h3>${escapeHtml(service.name)}</h3>
+          <p>${escapeHtml(service.description)}</p>
           <div class="service-meta">
             <span>${money(service.price)}</span>
             <span>${service.duration} min</span>
@@ -68,7 +93,7 @@ function renderServices() {
   serviceSelect.innerHTML = [
     '<option value="">Selecione o serviço</option>',
     ...services.map(
-      (service) => `<option value="${service.id}">${service.name} - ${service.duration} min - ${money(service.price)}</option>`,
+      (service) => `<option value="${service.id}">${escapeHtml(service.name)} - ${service.duration} min - ${money(service.price)}</option>`,
     ),
   ].join("");
   renderServiceDetails();
@@ -76,32 +101,37 @@ function renderServices() {
 
 function renderProfessionals() {
   professionalSelect.innerHTML = professionals
-    .map((professional) => `<option>${professional}</option>`)
+    .map((professional) => `<option>${escapeHtml(professional)}</option>`)
     .join("");
 }
 
 function renderPaymentMethods() {
   paymentSelect.innerHTML = paymentMethods
-    .map((paymentMethod) => `<option>${paymentMethod}</option>`)
+    .map((paymentMethod) => `<option>${escapeHtml(paymentMethod)}</option>`)
     .join("");
 }
 
 function unavailableTimes() {
-  return appointments
-    .filter(
-      (appointment) =>
-        appointment.id !== editingAppointmentId &&
-        appointment.date === dateInput.value &&
-        appointment.professional === professionalSelect.value &&
-        appointment.status !== "cancelado",
-    )
-    .map((appointment) => appointment.time);
+  return [];
 }
 
 async function loadAvailability() {
   if (!dateInput.value) return;
-  const availability = await api(`/api/availability?date=${dateInput.value}`);
+  const params = new URLSearchParams({
+    date: dateInput.value,
+    professional: professionalSelect.value,
+  });
+  const availability = await api(`/api/availability?${params.toString()}`);
   availableTimes = availability.times;
+  const editingAppointment = appointments.find((appointment) => appointment.id === editingAppointmentId);
+  if (
+    editingAppointment &&
+    editingAppointment.date === dateInput.value &&
+    editingAppointment.professional === professionalSelect.value &&
+    !availableTimes.includes(editingAppointment.time)
+  ) {
+    availableTimes = [...availableTimes, editingAppointment.time].sort();
+  }
   renderTimes();
 }
 
@@ -136,8 +166,8 @@ function renderServiceDetails() {
   }
 
   serviceDetails.innerHTML = `
-    <strong>${service.name}</strong>
-    <span>${service.description}</span>
+    <strong>${escapeHtml(service.name)}</strong>
+    <span>${escapeHtml(service.description)}</span>
     <small>${service.duration} min | ${money(service.price)}</small>
   `;
 }
@@ -160,25 +190,38 @@ function currentSummary() {
 
 function renderSummary() {
   bookingSummary.innerHTML = currentSummary()
-    .map(([label, value]) => `<div class="summary-line"><dt>${label}</dt><dd>${value}</dd></div>`)
+    .map(([label, value]) => `<div class="summary-line"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value)}</dd></div>`)
     .join("");
 }
 
 function renderAppointments() {
+  if (!adminPin) {
+    appointments = [];
+    appointmentsList.innerHTML = '<div class="empty-state">Digite o PIN administrativo para ver a agenda completa.</div>';
+    todayCount.textContent = "Painel protegido";
+    return;
+  }
+
   const sorted = [...appointments].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+  if (!sorted.length) {
+    appointmentsList.innerHTML = '<div class="empty-state">Nenhum agendamento registrado.</div>';
+    todayCount.textContent = "0 horarios";
+    return;
+  }
+
   appointmentsList.innerHTML = sorted
     .map(
       (appointment) => `
         <article class="appointment-card">
-          <div class="appointment-time">${appointment.time}</div>
+          <div class="appointment-time">${escapeHtml(appointment.time)}</div>
           <div>
-            <h3>${appointment.client}</h3>
-            <p>${appointment.service.name} com ${appointment.professional} em ${formatDate(appointment.date)}</p>
-            <p>${appointment.phone} | ${appointment.paymentMethod} | ${money(appointment.service.price)} | ${appointment.service.duration} min</p>
-            ${appointment.notes ? `<p>Obs.: ${appointment.notes}</p>` : ""}
+            <h3>${escapeHtml(appointment.client)}</h3>
+            <p>${escapeHtml(appointment.service.name)} com ${escapeHtml(appointment.professional)} em ${formatDate(appointment.date)}</p>
+            <p>${escapeHtml(appointment.phone)} | ${escapeHtml(appointment.paymentMethod)} | ${money(appointment.service.price)} | ${appointment.service.duration} min</p>
+            ${appointment.notes ? `<p>Obs.: ${escapeHtml(appointment.notes)}</p>` : ""}
           </div>
           <div class="appointment-actions">
-            <span class="status ${appointment.status}">${appointment.status}</span>
+            <span class="status ${escapeHtml(appointment.status)}">${escapeHtml(appointment.status)}</span>
             <button class="secondary-button" type="button" data-action="reschedule" data-id="${appointment.id}">Remarcar</button>
             <button class="ghost-button" type="button" data-action="cancel" data-id="${appointment.id}">Desmarcar</button>
           </div>
@@ -197,9 +240,9 @@ function renderReviews(average) {
     .map(
       (review) => `
         <article class="review-card">
-          <strong>${review.name}</strong>
+          <strong>${escapeHtml(review.name)}</strong>
           <span>Nota ${review.rating}/5</span>
-          <p>${review.comment}</p>
+          <p>${escapeHtml(review.comment)}</p>
         </article>
       `,
     )
@@ -216,7 +259,12 @@ function setInitialDate() {
 }
 
 async function loadAppointments() {
-  appointments = await api("/api/appointments");
+  if (!adminPin) {
+    renderAppointments();
+    return;
+  }
+
+  appointments = await api("/api/appointments", { admin: true });
   renderAppointments();
 }
 
@@ -250,6 +298,7 @@ bookingForm.addEventListener("submit", async (event) => {
     if (editingAppointmentId) {
       await api(`/api/appointments/${editingAppointmentId}/reschedule`, {
         method: "PATCH",
+        admin: true,
         body: JSON.stringify(payload),
       });
       showMessage("Agendamento remarcado com sucesso.");
@@ -263,7 +312,9 @@ bookingForm.addEventListener("submit", async (event) => {
 
     resetBookingForm();
     await loadAvailability();
-    await loadAppointments();
+    if (adminPin) {
+      await loadAppointments();
+    }
     renderSummary();
   } catch (error) {
     showMessage(error.message);
@@ -280,7 +331,7 @@ appointmentsList.addEventListener("click", async (event) => {
 
   if (button.dataset.action === "cancel") {
     try {
-      await api(`/api/appointments/${id}/cancel`, { method: "PATCH" });
+      await api(`/api/appointments/${id}/cancel`, { method: "PATCH", admin: true });
       showMessage("Agendamento desmarcado com sucesso.");
       await loadAppointments();
       await loadAvailability();
@@ -303,6 +354,39 @@ appointmentsList.addEventListener("click", async (event) => {
   timeSelect.value = appointment.time;
   renderSummary();
   document.querySelector("#agendar").scrollIntoView({ behavior: "smooth" });
+});
+
+adminForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const typedPin = adminPinInput.value.trim();
+
+  if (!typedPin || typedPin === "********") {
+    updateAdminStatus("Digite o PIN administrativo para abrir o painel.");
+    return;
+  }
+
+  adminPin = typedPin;
+  sessionStorage.setItem("adminPin", adminPin);
+
+  try {
+    await loadAppointments();
+    updateAdminStatus();
+  } catch (error) {
+    adminPin = "";
+    sessionStorage.removeItem("adminPin");
+    appointments = [];
+    renderAppointments();
+    updateAdminStatus(error.message);
+  }
+});
+
+adminLockButton.addEventListener("click", () => {
+  adminPin = "";
+  editingAppointmentId = null;
+  sessionStorage.removeItem("adminPin");
+  appointments = [];
+  renderAppointments();
+  updateAdminStatus("Painel bloqueado neste navegador.");
 });
 
 reviewForm.addEventListener("submit", async (event) => {
@@ -347,6 +431,7 @@ async function init() {
     renderProfessionals();
     renderPaymentMethods();
     await loadAvailability();
+    updateAdminStatus();
     await loadAppointments();
     await loadReviews();
     renderSummary();

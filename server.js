@@ -5,14 +5,23 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 5175;
 const DB_PATH = path.join(__dirname, "database.json");
+const ADMIN_PIN = process.env.ADMIN_PIN;
+const PUBLIC_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 40 });
+const ADMIN_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 80 });
 
 const weekdayTimes = buildTimes("08:00", "18:00", 30);
 const shortDayTimes = buildTimes("08:00", "14:00", 30);
 const paymentMethods = ["Pix", "Dinheiro", "Cartão de débito", "Cartão de crédito"];
 const holidayDates = ["2026-01-01", "2026-04-03", "2026-04-21", "2026-05-01", "2026-09-07", "2026-10-12", "2026-11-02", "2026-11-15", "2026-12-25"];
 
-app.use(express.json());
+app.set("trust proxy", 1);
+app.use(securityHeaders);
+app.use(express.json({ limit: "20kb" }));
 app.use(express.static(__dirname));
+
+if (!ADMIN_PIN) {
+  console.warn("ADMIN_PIN nao configurado. O painel administrativo ficara bloqueado.");
+}
 
 async function readDb() {
   const raw = await fs.readFile(DB_PATH, "utf-8");
@@ -29,6 +38,57 @@ function nextId(items) {
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function createRateLimit({ windowMs, max }) {
+  const attempts = new Map();
+
+  return (req, res, next) => {
+    const now = Date.now();
+    const key = `${req.ip}:${req.method}:${req.path}`;
+    const current = attempts.get(key);
+
+    if (!current || current.resetAt <= now) {
+      attempts.set(key, { count: 1, resetAt: now + windowMs });
+      next();
+      return;
+    }
+
+    current.count += 1;
+
+    if (current.count > max) {
+      res.status(429).json({ error: "Muitas tentativas. Aguarde alguns minutos e tente novamente." });
+      return;
+    }
+
+    next();
+  };
+}
+
+function securityHeaders(req, res, next) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "same-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; img-src 'self' https://images.unsplash.com data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+  );
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  if (!ADMIN_PIN) {
+    res.status(503).json({ error: "Painel administrativo bloqueado. Configure ADMIN_PIN no Render." });
+    return;
+  }
+
+  if (req.get("x-admin-pin") !== ADMIN_PIN) {
+    res.status(401).json({ error: "Acesso administrativo nao autorizado." });
+    return;
+  }
+
+  next();
 }
 
 function toMinutes(time) {
@@ -53,6 +113,26 @@ function isShortDay(date) {
 
 function allowedTimes(date) {
   return isShortDay(date) ? shortDayTimes : weekdayTimes;
+}
+
+function isISODate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(`${value}T12:00:00`).getTime());
+}
+
+function cleanString(value, maxLength) {
+  return String(value || "").trim().slice(0, maxLength);
+}
+
+function publicAppointment(appointment, services) {
+  return {
+    id: appointment.id,
+    serviceId: appointment.serviceId,
+    service: services.find((service) => service.id === appointment.serviceId),
+    professional: appointment.professional,
+    date: appointment.date,
+    time: appointment.time,
+    status: appointment.status,
+  };
 }
 
 function enrichAppointment(appointment, services) {
@@ -80,6 +160,10 @@ function validateAppointment(payload, db, currentId) {
 
   if (!paymentMethods.includes(payload.paymentMethod)) {
     return "Forma de pagamento inválida.";
+  }
+
+  if (!isISODate(payload.date)) {
+    return "Data invalida.";
   }
 
   if (payload.date < todayISO()) {
@@ -124,28 +208,52 @@ app.get("/api/payment-methods", (req, res) => {
   res.json(paymentMethods);
 });
 
-app.get("/api/availability", (req, res) => {
-  const { date } = req.query;
+app.get("/api/availability", async (req, res) => {
+  const { date, professional } = req.query;
   if (!date) {
     res.status(400).json({ error: "Informe a data." });
     return;
   }
+
+  if (!isISODate(date)) {
+    res.status(400).json({ error: "Data invalida." });
+    return;
+  }
+
+  const db = await readDb();
   const times = allowedTimes(date);
-  res.json({ times, shortDay: isShortDay(date), closed: times.length === 0 });
+  const blocked = professional
+    ? db.appointments
+        .filter(
+          (appointment) =>
+            appointment.date === date &&
+            appointment.professional === professional &&
+            appointment.status !== "cancelado",
+        )
+        .map((appointment) => appointment.time)
+    : [];
+  const available = times.filter((time) => !blocked.includes(time));
+
+  res.json({ times: available, shortDay: isShortDay(date), closed: available.length === 0 });
 });
 
-app.get("/api/appointments", async (req, res) => {
+app.get("/api/appointments", requireAdmin, async (req, res) => {
   const db = await readDb();
   res.json(db.appointments.map((appointment) => enrichAppointment(appointment, db.services)));
 });
 
-app.post("/api/appointments", async (req, res) => {
+app.post("/api/appointments", PUBLIC_WRITE_LIMIT, async (req, res) => {
   const db = await readDb();
   const payload = {
     ...req.body,
+    client: cleanString(req.body.client, 80),
+    phone: cleanString(req.body.phone, 30),
     serviceId: Number(req.body.serviceId),
+    professional: cleanString(req.body.professional, 80),
+    date: cleanString(req.body.date, 10),
+    time: cleanString(req.body.time, 5),
     paymentMethod: req.body.paymentMethod,
-    notes: req.body.notes?.trim() || "",
+    notes: cleanString(req.body.notes, 250),
     status: "agendado",
   };
   const error = validateAppointment(payload, db);
@@ -158,10 +266,10 @@ app.post("/api/appointments", async (req, res) => {
   const appointment = { id: nextId(db.appointments), ...payload };
   db.appointments.unshift(appointment);
   await writeDb(db);
-  res.status(201).json(enrichAppointment(appointment, db.services));
+  res.status(201).json(publicAppointment(appointment, db.services));
 });
 
-app.patch("/api/appointments/:id/cancel", async (req, res) => {
+app.patch("/api/appointments/:id/cancel", requireAdmin, ADMIN_WRITE_LIMIT, async (req, res) => {
   const db = await readDb();
   const id = Number(req.params.id);
   const appointment = db.appointments.find((item) => item.id === id);
@@ -176,7 +284,7 @@ app.patch("/api/appointments/:id/cancel", async (req, res) => {
   res.json(enrichAppointment(appointment, db.services));
 });
 
-app.patch("/api/appointments/:id/reschedule", async (req, res) => {
+app.patch("/api/appointments/:id/reschedule", requireAdmin, ADMIN_WRITE_LIMIT, async (req, res) => {
   const db = await readDb();
   const id = Number(req.params.id);
   const appointment = db.appointments.find((item) => item.id === id);
@@ -189,13 +297,13 @@ app.patch("/api/appointments/:id/reschedule", async (req, res) => {
   const payload = {
     ...appointment,
     serviceId: Number(req.body.serviceId || appointment.serviceId),
-    professional: req.body.professional || appointment.professional,
-    date: req.body.date || appointment.date,
-    time: req.body.time || appointment.time,
-    client: req.body.client || appointment.client,
-    phone: req.body.phone || appointment.phone,
+    professional: cleanString(req.body.professional || appointment.professional, 80),
+    date: cleanString(req.body.date || appointment.date, 10),
+    time: cleanString(req.body.time || appointment.time, 5),
+    client: cleanString(req.body.client || appointment.client, 80),
+    phone: cleanString(req.body.phone || appointment.phone, 30),
     paymentMethod: req.body.paymentMethod || appointment.paymentMethod,
-    notes: req.body.notes?.trim() || "",
+    notes: cleanString(req.body.notes, 250),
     status: "agendado",
   };
   const error = validateAppointment(payload, db, id);
@@ -218,20 +326,22 @@ app.get("/api/reviews", async (req, res) => {
   res.json({ reviews: db.reviews, average });
 });
 
-app.post("/api/reviews", async (req, res) => {
+app.post("/api/reviews", PUBLIC_WRITE_LIMIT, async (req, res) => {
   const db = await readDb();
   const rating = Number(req.body.rating);
+  const name = cleanString(req.body.name, 60);
+  const comment = cleanString(req.body.comment, 280);
 
-  if (!req.body.name || !req.body.comment || rating < 1 || rating > 5) {
+  if (!name || !comment || rating < 1 || rating > 5) {
     res.status(400).json({ error: "Informe nome, comentário e nota entre 1 e 5." });
     return;
   }
 
   const review = {
     id: nextId(db.reviews),
-    name: req.body.name.trim(),
+    name,
     rating,
-    comment: req.body.comment.trim(),
+    comment,
   };
 
   db.reviews.unshift(review);

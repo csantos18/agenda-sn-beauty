@@ -151,6 +151,15 @@
             Segunda a sábado: 08:00 às 18:00. Domingos e feriados: 08:00 às 14:00.
           </p>
         </div>
+        <form class="admin-panel" id="adminForm">
+          <label>
+            PIN administrativo
+            <input id="adminPinInput" name="adminPinInput" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Digite o PIN do salao" />
+          </label>
+          <button type="submit">Abrir painel</button>
+          <button class="ghost-button" type="button" id="adminLockButton">Bloquear painel</button>
+          <p id="adminStatus">Painel protegido. Apenas a profissional deve acessar a agenda completa.</p>
+        </form>
         <div class="appointments" id="appointmentsList"></div>
       </section>
 
