@@ -1,6 +1,10 @@
 # Agenda SN Beauty
 
-Aplicativo de agendamento criado para o **Sarah Neves Beauty Studio**, com front-end responsivo e back-end em Node.js/Express.
+Aplicativo de agendamento criado para o **Sarah Neves Beauty Studio**, com front-end responsivo, back-end em Node.js/Express e persistência opcional em Supabase.
+
+## Objetivo
+
+Organizar os atendimentos do salão de forma simples para a cliente e segura para a profissional. A cliente escolhe serviço, profissional, data, horário e forma de pagamento; a profissional acompanha os agendamentos em um painel protegido.
 
 ## Recursos
 
@@ -8,7 +12,7 @@ Aplicativo de agendamento criado para o **Sarah Neves Beauty Studio**, com front
 - Agendamento com cliente, telefone, serviço, profissional, data e horário.
 - Validação para evitar dois agendamentos no mesmo horário/profissional.
 - Painel administrativo protegido por PIN.
-- Filtro por data no painel.
+- Filtro por data no painel administrativo.
 - Cancelamento, remarcação e conclusão de atendimentos.
 - Avaliações das clientes com média de notas.
 - Confirmação do agendamento por WhatsApp com mensagem pronta.
@@ -35,7 +39,7 @@ O app funciona de duas formas:
 - **Supabase**: usado quando `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` estão configuradas.
 - **Arquivo local**: fallback em `database.json`, útil para desenvolvimento e testes.
 
-No Render Free, use Supabase para não perder agendamentos e avaliações em reinícios/deploys.
+No Render Free, use Supabase para não perder agendamentos e avaliações em reinícios ou deploys.
 
 ## Configurar Supabase
 
@@ -52,6 +56,27 @@ SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
 
 Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas no servidor/Render.
 
+## Regras de Segurança
+
+- A agenda completa só pode ser acessada com o header `x-admin-pin`.
+- Dados sensíveis de clientes, como telefone, não são exibidos na área pública.
+- A `SUPABASE_SERVICE_ROLE_KEY` fica apenas em variável de ambiente no servidor.
+- O front-end não recebe nem expõe chaves secretas.
+- O servidor usa headers de segurança básicos, limite de JSON e rate limit para escritas públicas.
+- O Supabase está com Row Level Security habilitado nas tabelas criadas pelo schema.
+
+## Regras de Negócio
+
+- A mesma profissional não pode ter dois atendimentos ativos no mesmo horário.
+- Datas antigas não podem ser usadas para novos agendamentos.
+- Segunda a sábado: 08:00 às 18:00.
+- Domingos e feriados: 08:00 às 14:00.
+- Cancelamentos devem ser combinados com o salão.
+- O pagamento é realizado presencialmente após o atendimento.
+- Formas de pagamento aceitas: Pix, dinheiro, cartão de débito e cartão de crédito.
+- Observações da cliente ficam salvas junto ao agendamento.
+- Avaliações aceitam notas de 1 a 5.
+
 ## Rotas da API
 
 - `GET /api/health`
@@ -67,14 +92,12 @@ Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas 
 - `GET /api/reviews`
 - `POST /api/reviews`
 
-## Regras de negócio
+## Arquivos Principais
 
-- A mesma profissional não pode ter dois atendimentos no mesmo horário.
-- Datas antigas não podem ser usadas para novos agendamentos.
-- Segunda a sábado: 08:00 às 18:00.
-- Domingos e feriados: 08:00 às 14:00.
-- Cancelamentos devem ser combinados com o salão.
-- O pagamento é realizado presencialmente após o atendimento.
-- Formas de pagamento aceitas: Pix, dinheiro, cartão de débito e cartão de crédito.
-- Observações da cliente ficam salvas junto ao agendamento.
-- Avaliações aceitam notas de 1 a 5.
+- `index.html`: estrutura da interface.
+- `styles.css`: layout responsivo e estilos visuais.
+- `script.js`: interação do front-end com a API.
+- `server.js`: API, segurança, validações e persistência.
+- `database.json`: dados iniciais e fallback local.
+- `supabase-schema.sql`: tabelas necessárias no Supabase.
+- `render.yaml`: configuração base do Render no plano Free.
