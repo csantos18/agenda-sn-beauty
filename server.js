@@ -68,7 +68,7 @@ function loadLocalEnv() {
 }
 
 function cleanEnvValue(value) {
-  return typeof value === "string" ? value.trim() : value;
+  return typeof value === "string" ? value.trim().replace(/^["']|["']$/g, "") : value;
 }
 
 async function readDb() {
