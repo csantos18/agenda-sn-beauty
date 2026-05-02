@@ -10,13 +10,14 @@ Organizar os atendimentos do salão de forma simples para a cliente e segura par
 
 - Catálogo de serviços com preço, duração e descrição.
 - Agendamento com cliente, telefone, serviço, profissional, data e horário.
-- Validação para evitar dois agendamentos no mesmo horário/profissional.
+- Validação para evitar conflito entre atendimentos pelo tempo total de cada serviço.
 - Painel administrativo protegido por login com senha e sessão HTTP-only.
 - Filtro por data no painel administrativo.
 - Dashboard administrativo com estatísticas da data selecionada.
 - Cancelamento, remarcação e conclusão de atendimentos.
 - Avaliações das clientes com média de notas.
 - Confirmação do agendamento por WhatsApp com mensagem pronta.
+- Confirmação com protocolo, status e resumo do horário solicitado.
 - Botão fixo de WhatsApp para contato rápido.
 - Notificação automática opcional para a dona do salão via webhook.
 - Seção de orientações para confirmação, atraso e bloqueio de horários.
@@ -94,13 +95,17 @@ Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas 
 - O front-end não recebe nem expõe chaves secretas.
 - A senha administrativa não é salva no navegador; o acesso usa cookie HTTP-only com assinatura.
 - O servidor usa headers de segurança básicos, limite de JSON e rate limit para escritas públicas.
+- O login administrativo usa comparação segura de segredo e cookie HTTP-only assinado.
+- Avaliações públicas têm limite separado, campo antispam invisível e bloqueio de duplicadas.
+- Rotas assíncronas respondem erro controlado em caso de falha interna.
 - O Supabase está com Row Level Security habilitado nas tabelas criadas pelo schema.
 - A seção pública de privacidade informa quais dados são coletados e como são usados.
 - Webhooks de notificação ficam apenas no servidor e não são expostos no front-end.
 
 ## Regras de Negócio
 
-- A mesma profissional não pode ter dois atendimentos ativos no mesmo horário.
+- A mesma profissional não pode ter atendimentos ativos que se sobreponham pelo tempo de duração do serviço.
+- O sistema só oferece horários em que o serviço consegue terminar dentro do expediente.
 - Datas antigas não podem ser usadas para novos agendamentos.
 - Segunda a sábado: 08:00 às 18:00.
 - Domingos e feriados: 08:00 às 14:00.

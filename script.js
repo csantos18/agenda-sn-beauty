@@ -33,6 +33,7 @@ const ratingScore = document.querySelector("#ratingScore");
 const ratingCount = document.querySelector("#ratingCount");
 const confirmationBox = document.querySelector("#confirmationBox");
 const bookingWhatsAppLink = document.querySelector("#bookingWhatsAppLink");
+const confirmationDetails = document.querySelector("#confirmationDetails");
 const LOCAL_API_ORIGIN = "http://localhost:5175";
 const SALON_WHATSAPP = "5561981561421";
 
@@ -111,6 +112,7 @@ function buildBookingWhatsAppUrl(appointment) {
   const service = services.find((item) => item.id === Number(appointment.serviceId));
   const message = [
     "Olá! Fiz um agendamento pelo Agenda SN Beauty.",
+    appointment.id ? `Protocolo: #${appointment.id}` : "",
     "",
     `Nome: ${appointment.client}`,
     `Telefone: ${appointment.phone}`,
@@ -151,6 +153,19 @@ function showBookingConfirmation(appointment) {
   if (!confirmationBox || !bookingWhatsAppLink) return;
 
   bookingWhatsAppLink.href = buildBookingWhatsAppUrl(appointment);
+  if (confirmationDetails) {
+    const service = services.find((item) => item.id === Number(appointment.serviceId));
+    confirmationDetails.innerHTML = [
+      appointment.id ? ["Protocolo", `#${appointment.id}`] : null,
+      ["Status", statusLabel(appointment.status || "pendente")],
+      ["Serviço", service ? service.name : "Serviço selecionado"],
+      ["Data", formatDate(appointment.date)],
+      ["Horário", appointment.time],
+    ]
+      .filter(Boolean)
+      .map(([label, value]) => `<span><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</span>`)
+      .join("");
+  }
   confirmationBox.hidden = false;
 }
 
@@ -212,6 +227,13 @@ async function loadAvailability() {
     date: dateInput.value,
     professional: professionalSelect.value,
   });
+  const service = selectedService();
+  if (service) {
+    params.set("serviceId", service.id);
+  }
+  if (editingAppointmentId) {
+    params.set("excludeId", editingAppointmentId);
+  }
   const availability = await api(`/api/availability?${params.toString()}`);
   availableTimes = availability.times;
   const editingAppointment = appointments.find((appointment) => appointment.id === editingAppointmentId);
@@ -229,7 +251,7 @@ async function loadAvailability() {
 function renderTimes() {
   const blocked = unavailableTimes();
   if (!availableTimes.length) {
-    timeSelect.innerHTML = '<option value="">Não há horários disponíveis para esta data</option>';
+    timeSelect.innerHTML = '<option value="">Não há horário disponível para esse serviço nesta data</option>';
     return;
   }
 
@@ -276,7 +298,15 @@ function currentSummary() {
     ["Observações", notesInput.value.trim() || "Nenhuma"],
     ["Valor", money(service.price)],
     ["Duração", `${service.duration} min`],
+    ["Funcionamento", isShortDaySelected() ? "08:00 às 14:00" : "08:00 às 18:00"],
   ];
+}
+
+function isShortDaySelected() {
+  if (!dateInput.value) return false;
+  const day = new Date(`${dateInput.value}T12:00:00`).getDay();
+  const holidays = ["2026-01-01", "2026-04-03", "2026-04-21", "2026-05-01", "2026-09-07", "2026-10-12", "2026-11-02", "2026-11-15", "2026-12-25"];
+  return day === 0 || holidays.includes(dateInput.value);
 }
 
 function renderSummary() {
@@ -606,6 +636,7 @@ reviewForm.addEventListener("submit", async (event) => {
         name: document.querySelector("#reviewName").value.trim(),
         rating: Number(document.querySelector("#reviewRating").value),
         comment: document.querySelector("#reviewComment").value.trim(),
+        website: document.querySelector("#reviewWebsite").value.trim(),
       }),
     });
     reviewForm.reset();
@@ -619,7 +650,7 @@ reviewForm.addEventListener("submit", async (event) => {
 [serviceSelect, professionalSelect, paymentSelect, dateInput, timeSelect, notesInput].forEach((element) => {
   element.addEventListener("change", async () => {
     hideBookingConfirmation();
-    if (element === professionalSelect || element === dateInput) {
+    if (element === professionalSelect || element === dateInput || element === serviceSelect) {
       await loadAvailability();
     }
     if (element === serviceSelect) {

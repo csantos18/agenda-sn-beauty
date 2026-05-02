@@ -7,6 +7,7 @@ const BASE_URL = (process.env.BASE_URL || "http://localhost:5175").replace(/\/$/
 const ADMIN_PIN = cleanEnvValue(process.env.ADMIN_PIN);
 const TEST_DATE = process.env.SMOKE_TEST_DATE || tomorrowISO();
 const TEST_TIME = process.env.SMOKE_TEST_TIME || "08:00";
+const OVERLAP_TIME = process.env.SMOKE_TEST_OVERLAP_TIME || "08:30";
 const PROFESSIONAL = process.env.SMOKE_TEST_PROFESSIONAL || "Jacinta Santos";
 
 const results = [];
@@ -24,7 +25,8 @@ async function main() {
 
   const appointment = await createAppointment(service.id);
   await expectDuplicateBlocked(service.id);
-  await expectTimeUnavailable();
+  await expectOverlapBlocked(service.id);
+  await expectTimeUnavailable(service.id);
 
   if (ADMIN_PIN) {
     const cookie = await loginAdmin();
@@ -75,12 +77,22 @@ async function expectDuplicateBlocked(serviceId) {
   record("duplicate appointment blocked", response.status === 409, `status=${response.status}`);
 }
 
-async function expectTimeUnavailable() {
-  const params = new URLSearchParams({ date: TEST_DATE, professional: PROFESSIONAL });
+async function expectOverlapBlocked(serviceId) {
+  const response = await request("/api/appointments", {
+    method: "POST",
+    body: JSON.stringify(testPayload(serviceId, OVERLAP_TIME)),
+  });
+  record("overlapping duration blocked", response.status === 409, `status=${response.status}`);
+}
+
+async function expectTimeUnavailable(serviceId) {
+  const params = new URLSearchParams({ date: TEST_DATE, professional: PROFESSIONAL, serviceId: String(serviceId) });
   const response = await request(`/api/availability?${params.toString()}`);
   const data = await response.json();
-  const unavailable = Array.isArray(data.times) && !data.times.includes(TEST_TIME);
-  record("booked time unavailable", response.ok && unavailable, `status=${response.status} contains=${!unavailable}`);
+  const bookedUnavailable = Array.isArray(data.times) && !data.times.includes(TEST_TIME);
+  const overlapUnavailable = Array.isArray(data.times) && !data.times.includes(OVERLAP_TIME);
+  record("booked time unavailable", response.ok && bookedUnavailable, `status=${response.status} contains=${!bookedUnavailable}`);
+  record("overlap time unavailable", response.ok && overlapUnavailable, `status=${response.status} contains=${!overlapUnavailable}`);
 }
 
 async function loginAdmin() {
@@ -145,7 +157,7 @@ async function request(route, options = {}) {
   return fetch(`${BASE_URL}${route}`, { ...options, headers });
 }
 
-function testPayload(serviceId) {
+function testPayload(serviceId, time = TEST_TIME) {
   return {
     client: `Teste Smoke ${Date.now()}`,
     phone: "(61) 99999-0000",
@@ -154,7 +166,7 @@ function testPayload(serviceId) {
     paymentMethod: "Pix",
     notes: "Teste automatizado de entrega",
     date: TEST_DATE,
-    time: TEST_TIME,
+    time,
   };
 }
 

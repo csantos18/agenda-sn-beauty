@@ -92,7 +92,7 @@
 
           <label>
             Telefone
-            <input id="clientPhone" name="clientPhone" required placeholder="(00) 00000-0000" />
+            <input id="clientPhone" name="clientPhone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="(00) 00000-0000" />
           </label>
 
           <label>
@@ -143,6 +143,7 @@
           <dl id="bookingSummary"></dl>
           <div class="confirmation-box" id="confirmationBox" hidden>
             <strong>Seu horário foi solicitado.</strong>
+            <div class="confirmation-details" id="confirmationDetails"></div>
             <p>Aguarde a confirmação da profissional pelo WhatsApp. Para agilizar, envie o resumo do pedido para o salão.</p>
             <a class="whatsapp-button" id="bookingWhatsAppLink" href="https://wa.me/5561981561421" target="_blank" rel="noopener">Enviar no WhatsApp</a>
           </div>
@@ -253,6 +254,7 @@
         </div>
         <div class="reviews-layout">
           <form class="review-form" id="reviewForm">
+            <input class="hidden-field" id="reviewWebsite" tabindex="-1" autocomplete="off" />
             <label>
               Nome
               <input id="reviewName" required placeholder="Ex.: Beatriz Lima" />

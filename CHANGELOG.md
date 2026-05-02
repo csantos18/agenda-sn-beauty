@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-05-02
+
+### Adicionado
+
+- Confirmacao pos-agendamento com protocolo, status e resumo do pedido.
+- Teste automatizado para impedir conflito parcial entre atendimentos.
+
+### Alterado
+
+- Disponibilidade agora considera a duracao do servico e so libera horarios que terminam dentro do expediente.
+- Segunda a sabado permanece das 08:00 as 18:00; domingos e feriados permanecem das 08:00 as 14:00.
+- Escritas de agendamento passam por uma fila curta no servidor para reduzir risco de duas reservas simultaneas no mesmo intervalo.
+
+### Seguranca
+
+- Login administrativo usa comparacao segura de segredo.
+- Cookies administrativos respeitam conexao segura atras do Render/proxy.
+- Avaliacoes publicas ganharam limite separado, campo antispam invisivel e bloqueio de duplicadas.
+- Erros internos em rotas assincronas retornam resposta controlada.
+
 Histórico de mudanças relevantes do Agenda SN Beauty.
 
 ## 2026-05-01
