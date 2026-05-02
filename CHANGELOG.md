@@ -1,32 +1,49 @@
 # Changelog
 
+Histórico de mudanças relevantes do Agenda SN Beauty.
+
 ## 2026-05-02
 
 ### Adicionado
 
-- Confirmacao pos-agendamento com protocolo, status e resumo do pedido.
+- Confirmação pós-agendamento com protocolo, status e resumo do pedido.
 - Teste automatizado para impedir conflito parcial entre atendimentos.
-- Pagina administrativa dedicada em `/admin`, separada da pagina publica das clientes.
+- Página administrativa dedicada em `/admin`, separada da página pública das clientes.
 - Script `npm run supabase:seed` para importar dados locais para o Supabase.
-- Consulta publica segura para cliente conferir o proprio agendamento por telefone e data.
-- Textos publicos refinados para deixar claro que o horario solicitado fica pendente ate confirmacao.
+- Consulta pública segura para cliente conferir o próprio agendamento por telefone e data.
+- Textos públicos refinados para deixar claro que o horário solicitado fica pendente até confirmação.
+- Monitor administrativo de saúde, auditoria, notificações e volume de pedidos.
+- Backup JSON protegido por sessão administrativa.
+- Moderação administrativa de avaliações.
+- Teste visual com Playwright em `npm run visual:check`.
+- Screenshots do site público, versão mobile e painel administrativo para o README.
 
 ### Alterado
 
-- Disponibilidade agora considera a duracao do servico e so libera horarios que terminam dentro do expediente.
-- Segunda a sabado permanece das 08:00 as 18:00; domingos e feriados permanecem das 08:00 as 14:00.
-- Escritas de agendamento passam por uma fila curta no servidor para reduzir risco de duas reservas simultaneas no mesmo intervalo.
-- Persistencia Supabase passa a gravar registros pontuais, sem apagar e recriar a base inteira.
+- Disponibilidade agora considera a duração do serviço e só libera horários que terminam dentro do expediente.
+- Segunda a sábado permanece das 08:00 às 18:00; domingos e feriados permanecem das 08:00 às 14:00.
+- Escritas de agendamento passam por uma fila curta no servidor para reduzir risco de duas reservas simultâneas no mesmo intervalo.
+- Persistência Supabase passa a gravar registros pontuais, sem apagar e recriar a base inteira.
+- README reestruturado como vitrine técnica do projeto.
+- Front-end público passa a usar a própria origem HTTP para chamadas de API, mantendo fallback para `file://`.
 
-### Seguranca
+### Segurança
 
-- Login administrativo usa comparacao segura de segredo.
-- Cookies administrativos respeitam conexao segura atras do Render/proxy.
-- Avaliacoes publicas ganharam limite separado, campo antispam invisivel e bloqueio de duplicadas.
-- Erros internos em rotas assincronas retornam resposta controlada.
-- Textos antigos com acentuacao quebrada vindos do banco sao normalizados antes de aparecerem para a cliente.
+- Login administrativo usa comparação segura de segredo.
+- Cookies administrativos respeitam conexão segura atrás do Render/proxy.
+- Avaliações públicas ganharam limite separado, campo antispam invisível e bloqueio de duplicadas.
+- Erros internos em rotas assíncronas retornam resposta controlada.
+- Textos antigos com acentuação quebrada vindos do banco são normalizados antes de aparecerem para a cliente.
+- Arquivos internos do projeto deixam de ser servidos publicamente pelo Express.
+- CORS local fica desativado quando `NODE_ENV=production`.
 
-Histórico de mudanças relevantes do Agenda SN Beauty.
+### Validado
+
+- `npm run check`
+- `npm run smoke`
+- `npm run mobile:check`
+- `npm run visual:check`
+- `npm audit --omit=dev`
 
 ## 2026-05-01
 
@@ -48,7 +65,7 @@ Histórico de mudanças relevantes do Agenda SN Beauty.
 ### Alterado
 
 - Texto de formas de pagamento ajustado para "Pix, dinheiro, débito e crédito".
-- Backend preparado para usar Supabase quando as variáveis de ambiente estiverem configuradas.
+- Back-end preparado para usar Supabase quando as variáveis de ambiente estiverem configuradas.
 - Fallback local em `database.json` mantido para desenvolvimento e testes.
 
 ### Segurança
