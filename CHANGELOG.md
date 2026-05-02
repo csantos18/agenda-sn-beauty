@@ -7,6 +7,7 @@ Histórico de mudanças relevantes do Agenda SN Beauty.
 ### Adicionado
 
 - Integração opcional com Supabase para persistir agendamentos e avaliações.
+- Notificação automática opcional de novo agendamento via webhook.
 - Schema SQL para criar as tabelas `appointments` e `reviews`.
 - Confirmação de agendamento por WhatsApp com mensagem pronta.
 - Botão fixo de WhatsApp para contato rápido.
@@ -25,6 +26,7 @@ Histórico de mudanças relevantes do Agenda SN Beauty.
 ### Segurança
 
 - Chave `SUPABASE_SERVICE_ROLE_KEY` mantida apenas no servidor via variável de ambiente.
+- URL do webhook de notificação mantida apenas no servidor via variável de ambiente.
 - Agenda completa continua protegida por `ADMIN_PIN`.
 - Dados sensíveis de clientes não são exibidos na área pública.
 

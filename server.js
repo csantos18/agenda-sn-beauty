@@ -11,6 +11,7 @@ const SEED_DB_PATH = path.join(__dirname, "database.json");
 const ADMIN_PIN = process.env.ADMIN_PIN;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const NOTIFICATION_WEBHOOK_URL = process.env.NOTIFICATION_WEBHOOK_URL;
 const supabase =
   SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
     ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -269,6 +270,57 @@ function enrichAppointment(appointment, services) {
   };
 }
 
+function appointmentNotificationPayload(appointment, services) {
+  const service = services.find((item) => item.id === appointment.serviceId);
+
+  return {
+    type: "appointment_created",
+    title: "Novo agendamento recebido",
+    appointment: {
+      id: appointment.id,
+      client: appointment.client,
+      phone: appointment.phone,
+      service: service?.name || "Serviço não encontrado",
+      professional: appointment.professional,
+      date: appointment.date,
+      time: appointment.time,
+      paymentMethod: appointment.paymentMethod,
+      notes: appointment.notes || "",
+      status: appointment.status,
+    },
+    message: [
+      "Novo agendamento recebido no Agenda SN Beauty.",
+      `Cliente: ${appointment.client}`,
+      `Telefone: ${appointment.phone}`,
+      `Serviço: ${service?.name || "Serviço não encontrado"}`,
+      `Data: ${appointment.date}`,
+      `Horário: ${appointment.time}`,
+      `Pagamento: ${appointment.paymentMethod}`,
+      appointment.notes ? `Observações: ${appointment.notes}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  };
+}
+
+async function notifyAppointmentCreated(appointment, services) {
+  if (!NOTIFICATION_WEBHOOK_URL) return;
+
+  try {
+    const response = await fetch(NOTIFICATION_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(appointmentNotificationPayload(appointment, services)),
+    });
+
+    if (!response.ok) {
+      console.warn(`Falha ao enviar notificação de agendamento: ${response.status}`);
+    }
+  } catch (error) {
+    console.warn(`Falha ao enviar notificação de agendamento: ${error.message}`);
+  }
+}
+
 function validateAppointment(payload, db, currentId) {
   const required = ["client", "phone", "serviceId", "professional", "date", "time", "paymentMethod"];
   const missing = required.filter((field) => !payload[field]);
@@ -393,6 +445,7 @@ app.post("/api/appointments", PUBLIC_WRITE_LIMIT, async (req, res) => {
   const appointment = { id: nextId(db.appointments), ...payload };
   db.appointments.unshift(appointment);
   await writeDb(db);
+  await notifyAppointmentCreated(appointment, db.services);
   res.status(201).json(publicAppointment(appointment, db.services));
 });
 

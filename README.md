@@ -17,6 +17,7 @@ Organizar os atendimentos do salão de forma simples para a cliente e segura par
 - Avaliações das clientes com média de notas.
 - Confirmação do agendamento por WhatsApp com mensagem pronta.
 - Botão fixo de WhatsApp para contato rápido.
+- Notificação automática opcional para a dona do salão via webhook.
 - Seção de orientações para confirmação, atraso e bloqueio de horários.
 - Seção de privacidade e termos de uso com explicação sobre dados coletados e acesso restrito.
 
@@ -53,9 +54,12 @@ No Render Free, use Supabase para não perder agendamentos e avaliações em rei
 ADMIN_PIN=seu-pin-administrativo
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
+NOTIFICATION_WEBHOOK_URL=https://exemplo.com/webhook-de-agendamento
 ```
 
 Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas no servidor/Render.
+
+`NOTIFICATION_WEBHOOK_URL` é opcional. Quando configurada, o back-end envia os dados do novo agendamento para um serviço externo, como Make, Zapier ou outro integrador.
 
 ## Regras de Segurança
 
@@ -66,6 +70,7 @@ Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas 
 - O servidor usa headers de segurança básicos, limite de JSON e rate limit para escritas públicas.
 - O Supabase está com Row Level Security habilitado nas tabelas criadas pelo schema.
 - A seção pública de privacidade informa quais dados são coletados e como são usados.
+- Webhooks de notificação ficam apenas no servidor e não são expostos no front-end.
 
 ## Regras de Negócio
 
