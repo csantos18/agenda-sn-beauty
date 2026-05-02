@@ -88,6 +88,14 @@ Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas 
 
 `NOTIFICATION_WEBHOOK_URL` é opcional. Quando configurada, o back-end envia os dados do novo agendamento para um serviço externo, como Make, Zapier ou outro integrador.
 
+Para importar os dados iniciais de `database.json` para o Supabase, configure `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` no `.env` local e execute:
+
+```bash
+npm run supabase:seed
+```
+
+Depois do deploy, confira `/api/health`. O campo `storage` deve mostrar `supabase`. Se mostrar `local-file`, o Render ainda não recebeu `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`.
+
 ## Regras de Segurança
 
 - A agenda completa só pode ser acessada com login administrativo e sessão válida.
@@ -102,6 +110,7 @@ Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas 
 - O Supabase está com Row Level Security habilitado nas tabelas criadas pelo schema.
 - A seção pública de privacidade informa quais dados são coletados e como são usados.
 - Webhooks de notificação ficam apenas no servidor e não são expostos no front-end.
+- Em produção com Supabase, o servidor grava cada agendamento/avaliação de forma pontual, sem apagar a base inteira.
 
 ## Regras de Negócio
 

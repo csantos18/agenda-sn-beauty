@@ -7,12 +7,14 @@
 - Confirmacao pos-agendamento com protocolo, status e resumo do pedido.
 - Teste automatizado para impedir conflito parcial entre atendimentos.
 - Pagina administrativa dedicada em `/admin`, separada da pagina publica das clientes.
+- Script `npm run supabase:seed` para importar dados locais para o Supabase.
 
 ### Alterado
 
 - Disponibilidade agora considera a duracao do servico e so libera horarios que terminam dentro do expediente.
 - Segunda a sabado permanece das 08:00 as 18:00; domingos e feriados permanecem das 08:00 as 14:00.
 - Escritas de agendamento passam por uma fila curta no servidor para reduzir risco de duas reservas simultaneas no mesmo intervalo.
+- Persistencia Supabase passa a gravar registros pontuais, sem apagar e recriar a base inteira.
 
 ### Seguranca
 

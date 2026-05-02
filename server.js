@@ -229,6 +229,38 @@ async function writeSupabaseDb(db) {
   }
 }
 
+async function persistAppointment(db, appointment) {
+  if (!supabase) {
+    await writeDb(db);
+    return;
+  }
+
+  const { error } = await supabase
+    .from("appointments")
+    .upsert(toSupabaseAppointment(appointment), { onConflict: "id" });
+  if (error) throw error;
+}
+
+async function removeAppointment(db, id) {
+  if (!supabase) {
+    await writeDb(db);
+    return;
+  }
+
+  const { error } = await supabase.from("appointments").delete().eq("id", id);
+  if (error) throw error;
+}
+
+async function persistReview(db, review) {
+  if (!supabase) {
+    await writeDb(db);
+    return;
+  }
+
+  const { error } = await supabase.from("reviews").insert(review);
+  if (error) throw error;
+}
+
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -700,7 +732,7 @@ app.post("/api/appointments", PUBLIC_WRITE_LIMIT, async (req, res) => {
 
     const appointment = { id: nextId(db.appointments), ...payload };
     db.appointments.unshift(appointment);
-    await writeDb(db);
+    await persistAppointment(db, appointment);
     await notifyAppointmentCreated(appointment, db.services);
     res.status(201).json(publicAppointment(appointment, db.services));
   });
@@ -717,7 +749,7 @@ app.patch("/api/appointments/:id/cancel", requireAdmin, ADMIN_WRITE_LIMIT, async
   }
 
   appointment.status = "cancelado";
-  await writeDb(db);
+  await persistAppointment(db, appointment);
   res.json(enrichAppointment(appointment, db.services));
 });
 
@@ -732,7 +764,7 @@ app.patch("/api/appointments/:id/confirm", requireAdmin, ADMIN_WRITE_LIMIT, asyn
   }
 
   appointment.status = "confirmado";
-  await writeDb(db);
+  await persistAppointment(db, appointment);
   res.json(enrichAppointment(appointment, db.services));
 });
 
@@ -752,7 +784,7 @@ app.delete("/api/appointments/:id", requireAdmin, ADMIN_WRITE_LIMIT, async (req,
   }
 
   db.appointments.splice(index, 1);
-  await writeDb(db);
+  await removeAppointment(db, id);
   res.status(204).end();
 });
 
@@ -767,7 +799,7 @@ app.patch("/api/appointments/:id/complete", requireAdmin, ADMIN_WRITE_LIMIT, asy
   }
 
   appointment.status = "concluido";
-  await writeDb(db);
+  await persistAppointment(db, appointment);
   res.json(enrichAppointment(appointment, db.services));
 });
 
@@ -802,7 +834,7 @@ app.patch("/api/appointments/:id/reschedule", requireAdmin, ADMIN_WRITE_LIMIT, a
     }
 
     Object.assign(appointment, payload);
-    await writeDb(db);
+    await persistAppointment(db, appointment);
     res.json(enrichAppointment(appointment, db.services));
   });
 });
@@ -881,7 +913,7 @@ app.post("/api/reviews", REVIEW_WRITE_LIMIT, async (req, res) => {
   };
 
   db.reviews.unshift(review);
-  await writeDb(db);
+  await persistReview(db, review);
   res.status(201).json(review);
 });
 

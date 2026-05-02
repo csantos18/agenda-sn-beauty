@@ -9,3 +9,11 @@ services:
     envVars:
       - key: ADMIN_PIN
         sync: false
+      - key: ADMIN_SESSION_SECRET
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: NOTIFICATION_WEBHOOK_URL
+        sync: false

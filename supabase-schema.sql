@@ -12,9 +12,18 @@ create table if not exists appointments (
   created_at timestamptz not null default now()
 );
 
+alter table appointments
+  alter column notes set default '';
+
 create unique index if not exists appointments_unique_active_time
   on appointments (professional, date, time)
   where status <> 'cancelado';
+
+create index if not exists appointments_date_professional_idx
+  on appointments (date, professional);
+
+create index if not exists appointments_status_idx
+  on appointments (status);
 
 create table if not exists reviews (
   id integer primary key,
@@ -26,3 +35,6 @@ create table if not exists reviews (
 
 alter table appointments enable row level security;
 alter table reviews enable row level security;
+
+revoke all on appointments from anon, authenticated;
+revoke all on reviews from anon, authenticated;
