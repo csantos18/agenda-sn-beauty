@@ -1,16 +1,19 @@
 const express = require("express");
 const crypto = require("crypto");
+const fsSync = require("fs");
 const fs = require("fs/promises");
 const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
+
+loadLocalEnv();
 
 const app = express();
 const PORT = process.env.PORT || 5175;
 const DATA_DIR = process.env.DATA_DIR || __dirname;
 const DB_PATH = path.join(DATA_DIR, "database.json");
 const SEED_DB_PATH = path.join(__dirname, "database.json");
-const ADMIN_PIN = process.env.ADMIN_PIN;
-const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || ADMIN_PIN;
+const ADMIN_PIN = cleanEnvValue(process.env.ADMIN_PIN);
+const ADMIN_SESSION_SECRET = cleanEnvValue(process.env.ADMIN_SESSION_SECRET) || ADMIN_PIN;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const NOTIFICATION_WEBHOOK_URL = process.env.NOTIFICATION_WEBHOOK_URL;
@@ -43,6 +46,28 @@ if (!ADMIN_PIN) {
 
 if (!ADMIN_SESSION_SECRET) {
   console.warn("ADMIN_SESSION_SECRET não configurado. Configure ADMIN_PIN ou ADMIN_SESSION_SECRET no Render.");
+}
+
+function loadLocalEnv() {
+  const envPath = path.join(__dirname, ".env");
+  if (!fsSync.existsSync(envPath)) return;
+
+  const lines = fsSync.readFileSync(envPath, "utf8").split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
+
+    const separatorIndex = trimmed.indexOf("=");
+    const key = trimmed.slice(0, separatorIndex).trim();
+    const value = trimmed.slice(separatorIndex + 1).trim().replace(/^["']|["']$/g, "");
+    if (key && process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+}
+
+function cleanEnvValue(value) {
+  return typeof value === "string" ? value.trim() : value;
 }
 
 async function readDb() {
