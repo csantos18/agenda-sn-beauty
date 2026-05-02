@@ -33,6 +33,10 @@ function money(value) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+function pluralize(count, singular, plural) {
+  return count === 1 ? `${count} ${singular}` : `${count} ${plural}`;
+}
+
 function formatDate(value) {
   return new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR");
 }
@@ -304,6 +308,24 @@ async function loadReviews() {
   renderReviews(data.average);
 }
 
+async function loadTodayAvailabilitySummary() {
+  if (!todayCount || !services.length || !professionals.length) return;
+
+  try {
+    const params = new URLSearchParams({
+      date: new Date().toISOString().slice(0, 10),
+      professional: professionals[0],
+      serviceId: String(services[0].id),
+    });
+    const availability = await api(`/api/availability?${params.toString()}`);
+    todayCount.textContent = availability.times.length
+      ? pluralize(availability.times.length, "horário", "horários")
+      : "Agenda cheia";
+  } catch {
+    todayCount.textContent = "Consultar horários";
+  }
+}
+
 function resetBookingForm() {
   bookingForm.reset();
   setInitialDate();
@@ -427,6 +449,7 @@ async function init() {
     renderServices();
     renderProfessionals();
     renderPaymentMethods();
+    await loadTodayAvailabilitySummary();
     await loadAvailability();
     await loadReviews();
     renderSummary();

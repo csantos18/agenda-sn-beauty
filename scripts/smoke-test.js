@@ -19,9 +19,11 @@ async function main() {
   await checkJson("professionals", "/api/professionals");
   await checkJson("payment methods", "/api/payment-methods");
   await checkJson("reviews", "/api/reviews");
+  await expectAdminRouteProtected();
 
   const service = Array.isArray(services) ? services[0] : null;
   assert("service fixture available", Boolean(service?.id), "first service must exist");
+  await expectBusinessHours(service.id);
 
   const appointment = await createAppointment(service.id);
   await expectDuplicateBlocked(service.id);
@@ -58,6 +60,43 @@ async function checkJson(name, route) {
   const data = await response.json();
   record(name, response.ok, `status=${response.status}`);
   return data;
+}
+
+async function expectAdminRouteProtected() {
+  const response = await request("/api/appointments");
+  record("admin route blocks public access", response.status === 401, `status=${response.status}`);
+}
+
+async function expectBusinessHours(serviceId) {
+  const sunday = nextWeekdayISO(0);
+  const monday = nextWeekdayISO(1);
+  const holiday = "2026-05-01";
+
+  const sundayAvailability = await availabilityFor(sunday, serviceId);
+  const mondayAvailability = await availabilityFor(monday, serviceId);
+  const holidayAvailability = await availabilityFor(holiday, serviceId);
+
+  record(
+    "sunday closes at 14:00",
+    sundayAvailability.closes === "14:00" && !sundayAvailability.times.includes("14:00"),
+    `closes=${sundayAvailability.closes}`,
+  );
+  record(
+    "holiday closes at 14:00",
+    holidayAvailability.closes === "14:00" && !holidayAvailability.times.includes("14:00"),
+    `closes=${holidayAvailability.closes}`,
+  );
+  record(
+    "weekday closes at 18:00",
+    mondayAvailability.closes === "18:00" && !mondayAvailability.times.includes("18:00"),
+    `closes=${mondayAvailability.closes}`,
+  );
+}
+
+async function availabilityFor(date, serviceId) {
+  const params = new URLSearchParams({ date, professional: PROFESSIONAL, serviceId: String(serviceId) });
+  const response = await request(`/api/availability?${params.toString()}`);
+  return response.json();
 }
 
 async function createAppointment(serviceId) {
@@ -199,6 +238,13 @@ function printResults() {
 function tomorrowISO() {
   const date = new Date();
   date.setDate(date.getDate() + 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function nextWeekdayISO(day) {
+  const date = new Date();
+  const distance = (day - date.getDay() + 7) % 7 || 7;
+  date.setDate(date.getDate() + distance);
   return date.toISOString().slice(0, 10);
 }
 
