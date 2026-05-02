@@ -23,6 +23,7 @@ record("viewport configured", includesAll(files.html, ['name="viewport"', "width
 record("mobile breakpoint exists", files.css.includes("@media (max-width: 620px)") && files.css.includes("@media (max-width: 380px)"), "620px and 380px");
 record("public mobile grids collapse", includesAll(files.css, [".services-grid", ".privacy-grid", ".lookup-form", "grid-template-columns: 1fr"]), "client layout");
 record("admin mobile layout collapses", includesAll(files.css, [".admin-workspace", ".admin-panel", ".monitor-panel", ".appointment-card"]), "admin layout");
+record("admin reviews mobile layout collapses", includesAll(files.css, [".admin-review-card", ".admin-reviews-summary", "white-space: normal"]), "admin reviews");
 record("mobile tap targets preserved", includesAll(files.css, ["min-height: 48px", ".secondary-button", ".ghost-button"]), "inputs/buttons");
 record("no horizontal body overflow", files.css.includes("overflow-x: hidden"), "body overflow guard");
 record("terms readable on mobile", includesAll(files.termsHtml, ["terms-shell", "terms-card"]) && files.css.includes(".terms-shell"), "terms page");

@@ -2,6 +2,7 @@ let services = [];
 let professionals = [];
 let paymentMethods = [];
 let appointments = [];
+let adminReviews = [];
 let adminAuthenticated = false;
 let editingAppointmentId = null;
 
@@ -19,6 +20,8 @@ const adminBackupButton = document.querySelector("#adminBackupButton");
 const adminStatus = document.querySelector("#adminStatus");
 const adminMonitorPanel = document.querySelector("#adminMonitorPanel");
 const adminAuditList = document.querySelector("#adminAuditList");
+const adminReviewsSummary = document.querySelector("#adminReviewsSummary");
+const adminReviewsList = document.querySelector("#adminReviewsList");
 const appointmentsList = document.querySelector("#appointmentsList");
 const adminEditPanel = document.querySelector("#adminEditPanel");
 const adminRescheduleForm = document.querySelector("#adminRescheduleForm");
@@ -117,6 +120,7 @@ function actionLabel(action) {
     appointment_rescheduled: "Agendamento remarcado",
     notification_failed: "Notificação falhou",
     notification_sent: "Notificação enviada",
+    review_deleted: "Avaliação removida",
     review_created: "Nova avaliação",
   };
   return labels[action] || action;
@@ -218,6 +222,60 @@ function renderAudit(logs) {
       `,
     )
     .join("");
+}
+
+function renderAdminReviews(average = 0) {
+  if (!adminAuthenticated) {
+    adminReviewsSummary.innerHTML = "";
+    adminReviewsList.innerHTML = "";
+    return;
+  }
+
+  adminReviewsSummary.innerHTML = `
+    <article class="stat-card">
+      <span>Média pública</span>
+      <strong>${Number(average || 0).toFixed(1)}/5</strong>
+    </article>
+    <article class="stat-card">
+      <span>Avaliações</span>
+      <strong>${adminReviews.length}</strong>
+    </article>
+  `;
+
+  if (!adminReviews.length) {
+    adminReviewsList.innerHTML = '<div class="empty-state">Nenhuma avaliação publicada ainda.</div>';
+    return;
+  }
+
+  adminReviewsList.innerHTML = adminReviews
+    .map(
+      (review) => `
+        <article class="admin-review-card">
+          <div>
+            <strong>${escapeHtml(review.name)}</strong>
+            <span>Nota ${escapeHtml(review.rating)}/5</span>
+            <p>${escapeHtml(review.comment)}</p>
+          </div>
+          <button class="ghost-button" type="button" data-review-action="delete" data-id="${review.id}">Remover</button>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+async function loadAdminReviews() {
+  if (!adminAuthenticated) {
+    renderAdminReviews();
+    return;
+  }
+
+  try {
+    const data = await api("/api/admin/reviews");
+    adminReviews = data.reviews || [];
+    renderAdminReviews(data.average);
+  } catch (error) {
+    adminReviewsList.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+  }
 }
 
 async function loadMonitor() {
@@ -434,7 +492,7 @@ async function loadAppointments() {
 
   appointments = await api("/api/appointments");
   renderAppointments();
-  await Promise.all([loadMonitor(), loadAudit()]);
+  await Promise.all([loadMonitor(), loadAudit(), loadAdminReviews()]);
 }
 
 async function loadEditAvailability() {
@@ -541,7 +599,25 @@ adminLockButton.addEventListener("click", async () => {
   renderAppointments();
   renderMonitor(null);
   renderAudit([]);
+  renderAdminReviews();
   updateAdminStatus("Painel bloqueado neste navegador.");
+});
+
+adminReviewsList.addEventListener("click", async (event) => {
+  const button = event.target.closest("button[data-review-action='delete']");
+  if (!button || !adminAuthenticated) return;
+
+  const id = Number(button.dataset.id);
+  const review = adminReviews.find((item) => Number(item.id) === id);
+  if (!review) return;
+
+  try {
+    await api(`/api/admin/reviews/${id}`, { method: "DELETE" });
+    showMessage(`Avaliação de ${review.name} removida do site público.`);
+    await Promise.all([loadAdminReviews(), loadAudit(), loadMonitor()]);
+  } catch (error) {
+    showMessage(error.message);
+  }
 });
 
 adminExportButton.addEventListener("click", () => {

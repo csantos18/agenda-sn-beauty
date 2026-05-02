@@ -20,6 +20,7 @@ Organizar os atendimentos do salão de forma simples para a cliente e segura par
 - Backup JSON protegido por sessão administrativa.
 - Cancelamento, remarcação e conclusão de atendimentos.
 - Avaliações das clientes com média de notas.
+- Moderação administrativa de avaliações para remover depoimentos falsos ou inadequados.
 - Confirmação do agendamento por WhatsApp com mensagem pronta.
 - Confirmação com protocolo, status e resumo do horário solicitado.
 - Consulta pública segura do próprio agendamento por telefone e data.
@@ -106,6 +107,12 @@ Para importar os dados iniciais de `database.json` para o Supabase, configure `S
 npm run supabase:seed
 ```
 
+Para confirmar se a auditoria persistente do Supabase está ativa:
+
+```bash
+npm run supabase:audit
+```
+
 Depois do deploy, confira `/api/health`. O campo `storage` deve mostrar `supabase`. Se mostrar `local-file`, o Render ainda não recebeu `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`.
 
 ## Regras de Segurança
@@ -155,6 +162,8 @@ Depois do deploy, confira `/api/health`. O campo `storage` deve mostrar `supabas
 - `GET /api/admin/monitor` com sessão administrativa
 - `GET /api/admin/audit` com sessão administrativa
 - `GET /api/admin/backup` com sessão administrativa
+- `GET /api/admin/reviews` com sessão administrativa
+- `DELETE /api/admin/reviews/:id` com sessão administrativa
 - `GET /api/appointments` com sessão administrativa
 - `POST /api/appointments`
 - `PATCH /api/appointments/:id/cancel` com sessão administrativa

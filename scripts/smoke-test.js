@@ -38,6 +38,7 @@ async function main() {
     await expectAdminSeesAppointment(cookie, appointment.id);
     await expectAdminMonitor(cookie);
     await expectAdminAudit(cookie);
+    await expectAdminReviews(cookie);
     await confirmAppointment(cookie, appointment.id);
     await exportCsv(cookie);
     await exportBackup(cookie);
@@ -70,6 +71,7 @@ function expectUiContracts() {
   record("admin monitor exists", adminHtml.includes('id="adminMonitorPanel"') && adminJs.includes("/api/admin/monitor"), "monitor panel");
   record("admin audit exists", adminHtml.includes('id="adminAuditList"') && adminJs.includes("/api/admin/audit"), "audit panel");
   record("admin backup exists", adminHtml.includes('id="adminBackupButton"') && adminJs.includes("/api/admin/backup"), "backup button");
+  record("admin reviews exists", adminHtml.includes('id="adminReviewsList"') && adminJs.includes("/api/admin/reviews"), "reviews moderation");
 }
 
 async function checkGet(name, route) {
@@ -212,6 +214,13 @@ async function expectAdminAudit(cookie) {
   const data = await response.json();
   const valid = response.ok && Array.isArray(data.logs);
   record("admin audit records appointment", valid, `status=${response.status} logs=${data.logs?.length || 0}`);
+}
+
+async function expectAdminReviews(cookie) {
+  const response = await request("/api/admin/reviews", { headers: { Cookie: cookie } });
+  const data = await response.json();
+  const valid = response.ok && Array.isArray(data.reviews) && typeof data.average === "number";
+  record("admin reviews moderation loads", valid, `status=${response.status} reviews=${data.reviews?.length || 0}`);
 }
 
 async function exportBackup(cookie) {

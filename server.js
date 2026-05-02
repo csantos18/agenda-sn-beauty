@@ -294,6 +294,16 @@ async function persistReview(db, review) {
   if (error) throw error;
 }
 
+async function removeReview(db, id) {
+  if (!supabase) {
+    await writeDb(db);
+    return;
+  }
+
+  const { error } = await supabase.from("reviews").delete().eq("id", id);
+  if (error) throw error;
+}
+
 async function readAuditLogs(limit = 30) {
   if (supabase) {
     const { data, error } = await supabase
@@ -958,6 +968,14 @@ app.get("/api/admin/backup", requireAdmin, async (req, res) => {
   res.json(backup);
 });
 
+app.get("/api/admin/reviews", requireAdmin, async (req, res) => {
+  const db = await readDb();
+  const average = db.reviews.length
+    ? db.reviews.reduce((sum, review) => sum + Number(review.rating), 0) / db.reviews.length
+    : 0;
+  res.json({ reviews: db.reviews, average });
+});
+
 app.post("/api/appointments", PUBLIC_WRITE_LIMIT, async (req, res) => {
   await withMutationLock(async () => {
     const db = await readDb();
@@ -1205,6 +1223,26 @@ app.post("/api/reviews", REVIEW_WRITE_LIMIT, async (req, res) => {
     metadata: { rating },
   });
   res.status(201).json(review);
+});
+
+app.delete("/api/admin/reviews/:id", requireAdmin, ADMIN_WRITE_LIMIT, async (req, res) => {
+  const db = await readDb();
+  const id = Number(req.params.id);
+  const index = db.reviews.findIndex((review) => Number(review.id) === id);
+
+  if (index === -1) {
+    res.status(404).json({ error: "Avaliação não encontrada." });
+    return;
+  }
+
+  const [review] = db.reviews.splice(index, 1);
+  await removeReview(db, id);
+  await recordAudit("review_deleted", {
+    actor: "admin",
+    summary: `Avaliação #${id} removida do site público.`,
+    metadata: { rating: review.rating },
+  });
+  res.status(204).end();
 });
 
 app.use((err, req, res, next) => {

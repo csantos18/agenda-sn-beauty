@@ -9,6 +9,7 @@
     "check": "node --check server.js && node --check script.js && node --check admin.js",
     "mobile:check": "node scripts/mobile-visual-test.js",
     "smoke": "node scripts/smoke-test.js",
+    "supabase:audit": "node scripts/check-supabase-audit.js",
     "supabase:seed": "node scripts/seed-supabase.js",
     "render-start": "node server.js"
   },

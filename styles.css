@@ -521,6 +521,54 @@ dd {
   gap: 12px;
 }
 
+.admin-reviews-panel {
+  margin-top: 22px;
+}
+
+.admin-reviews-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.admin-reviews-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-review-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--white);
+}
+
+.admin-review-card .ghost-button {
+  white-space: nowrap;
+}
+
+.admin-review-card strong,
+.admin-review-card span {
+  display: block;
+}
+
+.admin-review-card span {
+  margin-top: 4px;
+  color: var(--gold);
+  font-weight: 900;
+}
+
+.admin-review-card p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .admin-panel {
   display: grid;
   grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.55fr) minmax(150px, 0.45fr) auto auto auto;
@@ -1373,6 +1421,16 @@ body > .app-message {
 
   .appointment-card {
     grid-template-columns: 1fr;
+  }
+
+  .admin-review-card,
+  .admin-reviews-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-review-card .ghost-button {
+    width: 100%;
+    white-space: normal;
   }
 
   .admin-panel {
