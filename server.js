@@ -474,6 +474,10 @@ function validateAppointment(payload, db, currentId) {
   return "";
 }
 
+function appointmentValidationStatus(error) {
+  return error === "Esse horário já foi agendado para essa profissional." ? 409 : 400;
+}
+
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", app: "Agenda SN Beauty" });
 });
@@ -567,7 +571,7 @@ app.post("/api/appointments", PUBLIC_WRITE_LIMIT, async (req, res) => {
   const error = validateAppointment(payload, db);
 
   if (error) {
-    res.status(400).json({ error });
+    res.status(appointmentValidationStatus(error)).json({ error });
     return;
   }
 
@@ -633,7 +637,7 @@ app.patch("/api/appointments/:id/reschedule", requireAdmin, ADMIN_WRITE_LIMIT, a
   const error = validateAppointment(payload, db, id);
 
   if (error) {
-    res.status(400).json({ error });
+    res.status(appointmentValidationStatus(error)).json({ error });
     return;
   }
 
