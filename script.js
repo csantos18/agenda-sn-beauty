@@ -44,6 +44,10 @@ function pluralize(count, singular, plural) {
   return count === 1 ? `${count} ${singular}` : `${count} ${plural}`;
 }
 
+function availableLabel(count) {
+  return count === 1 ? "1 disponível" : `${count} disponíveis`;
+}
+
 function todayBusinessISO() {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: BUSINESS_TIME_ZONE,
@@ -354,11 +358,9 @@ async function loadTodayAvailabilitySummary() {
       serviceId: String(services[0].id),
     });
     const availability = await api(`/api/availability?${params.toString()}`);
-    todayCount.textContent = availability.times.length
-      ? pluralize(availability.times.length, "horário", "horários")
-      : "Agenda cheia";
+    todayCount.textContent = availability.times.length ? availableLabel(availability.times.length) : "Agenda cheia";
   } catch {
-    todayCount.textContent = "Consultar horários";
+    todayCount.textContent = "Consultar agenda";
   }
 }
 
