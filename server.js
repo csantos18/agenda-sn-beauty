@@ -572,22 +572,22 @@ function phoneDigits(value) {
 function normalizeLegacyEncoding(value) {
   if (typeof value !== "string") return value;
   const replacements = {
-    "Ã¡": "á",
-    "Ã ": "à",
-    "Ã¢": "â",
-    "Ã£": "ã",
-    "Ã©": "é",
-    "Ãª": "ê",
-    "Ã­": "í",
-    "Ã³": "ó",
-    "Ã´": "ô",
-    "Ãµ": "õ",
-    "Ãº": "ú",
-    "Ã§": "ç",
-    "Ã�": "Á",
-    "Ã‰": "É",
-    "Ã“": "Ó",
-    "Ã‡": "Ç",
+    "\u00C3\u00A1": "á",
+    "\u00C3\u00A0": "à",
+    "\u00C3\u00A2": "â",
+    "\u00C3\u00A3": "ã",
+    "\u00C3\u00A9": "é",
+    "\u00C3\u00AA": "ê",
+    "\u00C3\u00AD": "í",
+    "\u00C3\u00B3": "ó",
+    "\u00C3\u00B4": "ô",
+    "\u00C3\u00B5": "õ",
+    "\u00C3\u00BA": "ú",
+    "\u00C3\u00A7": "ç",
+    "\u00C3\u0081": "Á",
+    "\u00C3\u0089": "É",
+    "\u00C3\u0093": "Ó",
+    "\u00C3\u0087": "Ç",
   };
   return Object.entries(replacements).reduce((text, [broken, fixed]) => text.replaceAll(broken, fixed), value);
 }
