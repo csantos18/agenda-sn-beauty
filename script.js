@@ -26,6 +26,7 @@ const lookupForm = document.querySelector("#lookupForm");
 const lookupPhone = document.querySelector("#lookupPhone");
 const lookupDate = document.querySelector("#lookupDate");
 const lookupResults = document.querySelector("#lookupResults");
+const appMessage = document.querySelector("#appMessage");
 const LOCAL_API_ORIGIN = "http://localhost:5175";
 const SALON_WHATSAPP = "5561981561421";
 const BUSINESS_TIME_ZONE = "America/Sao_Paulo";
@@ -90,7 +91,17 @@ async function api(path, options = {}) {
 }
 
 function showMessage(message) {
-  alert(message);
+  if (!appMessage) {
+    alert(message);
+    return;
+  }
+
+  appMessage.textContent = message;
+  appMessage.hidden = false;
+  clearTimeout(showMessage.timeoutId);
+  showMessage.timeoutId = setTimeout(() => {
+    appMessage.hidden = true;
+  }, 5200);
 }
 
 function statusLabel(status) {

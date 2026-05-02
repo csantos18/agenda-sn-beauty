@@ -9,7 +9,10 @@ const adminForm = document.querySelector("#adminForm");
 const adminPinInput = document.querySelector("#adminPinInput");
 const adminDateInput = document.querySelector("#adminDateInput");
 const adminStatusFilter = document.querySelector("#adminStatusFilter");
+const adminSearchInput = document.querySelector("#adminSearchInput");
 const adminStats = document.querySelector("#adminStats");
+const adminWeekPanel = document.querySelector("#adminWeekPanel");
+const adminMessage = document.querySelector("#adminMessage");
 const adminLockButton = document.querySelector("#adminLockButton");
 const adminExportButton = document.querySelector("#adminExportButton");
 const adminStatus = document.querySelector("#adminStatus");
@@ -72,7 +75,17 @@ async function api(path, options = {}) {
 }
 
 function showMessage(message) {
-  alert(message);
+  if (!adminMessage) {
+    alert(message);
+    return;
+  }
+
+  adminMessage.textContent = message;
+  adminMessage.hidden = false;
+  clearTimeout(showMessage.timeoutId);
+  showMessage.timeoutId = setTimeout(() => {
+    adminMessage.hidden = true;
+  }, 5200);
 }
 
 function statusLabel(status) {
@@ -92,6 +105,28 @@ function normalizeStatus(status) {
 
 function appointmentValue(appointment) {
   return appointment.service?.price || 0;
+}
+
+function addDays(date, amount) {
+  const next = new Date(`${date}T12:00:00`);
+  next.setDate(next.getDate() + amount);
+  return next.toISOString().slice(0, 10);
+}
+
+function normalizeSearch(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function appointmentMatchesSearch(appointment, term) {
+  if (!term) return true;
+  const digits = term.replace(/\D/g, "");
+  const text = normalizeSearch(`${appointment.client} ${appointment.phone} ${appointment.service?.name || ""}`);
+  return text.includes(term) || (digits && String(appointment.phone || "").replace(/\D/g, "").includes(digits));
 }
 
 function updateAdminStatus(message) {
@@ -143,14 +178,53 @@ function renderAdminStats(items, selectedDate) {
     .join("");
 }
 
+function renderWeekPanel(selectedDate) {
+  if (!adminAuthenticated) {
+    adminWeekPanel.innerHTML = "";
+    return;
+  }
+
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = addDays(selectedDate, index);
+    const dayAppointments = appointments.filter(
+      (appointment) => appointment.date === date && normalizeStatus(appointment.status) !== "cancelado",
+    );
+    const pending = dayAppointments.filter((appointment) => normalizeStatus(appointment.status) === "pendente").length;
+    const revenue = dayAppointments.reduce((sum, appointment) => sum + appointmentValue(appointment), 0);
+    return { date, total: dayAppointments.length, pending, revenue };
+  });
+
+  adminWeekPanel.innerHTML = `
+    <div class="section-heading compact">
+      <p class="eyebrow">Próximos dias</p>
+      <h2>Resumo da semana</h2>
+    </div>
+    <div class="week-grid">
+      ${days
+        .map(
+          (day) => `
+            <article class="week-card ${day.date === selectedDate ? "selected" : ""}">
+              <span>${formatDate(day.date)}</span>
+              <strong>${day.total} atendimento${day.total === 1 ? "" : "s"}</strong>
+              <small>${day.pending} pendente${day.pending === 1 ? "" : "s"} | ${money(day.revenue)}</small>
+            </article>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 function visibleAppointments() {
   const selectedAdminDate = adminDateInput.value || todayBusinessISO();
   const selectedStatus = adminStatusFilter.value || "todos";
+  const searchTerm = normalizeSearch(adminSearchInput?.value || "");
   return appointments
     .filter(
       (appointment) =>
         appointment.date === selectedAdminDate &&
-        (selectedStatus === "todos" || normalizeStatus(appointment.status) === selectedStatus),
+        (selectedStatus === "todos" || normalizeStatus(appointment.status) === selectedStatus) &&
+        appointmentMatchesSearch(appointment, searchTerm),
     )
     .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
 }
@@ -177,6 +251,7 @@ function renderAppointments() {
   if (!adminAuthenticated) {
     appointments = [];
     renderAdminStats([], adminDateInput.value || todayBusinessISO());
+    renderWeekPanel(adminDateInput.value || todayBusinessISO());
     appointmentsList.innerHTML = '<div class="empty-state">Digite a senha administrativa para ver a agenda completa.</div>';
     return;
   }
@@ -184,9 +259,15 @@ function renderAppointments() {
   const selectedAdminDate = adminDateInput.value || todayBusinessISO();
   const sorted = visibleAppointments();
   renderAdminStats(sorted, selectedAdminDate);
+  renderWeekPanel(selectedAdminDate);
 
   if (!sorted.length) {
-    appointmentsList.innerHTML = `<div class="empty-state">Nenhum agendamento registrado para ${formatDate(selectedAdminDate)}.</div>`;
+    const hasSearch = Boolean((adminSearchInput?.value || "").trim());
+    appointmentsList.innerHTML = `<div class="empty-state">${
+      hasSearch
+        ? `Nenhum agendamento encontrado para essa busca em ${formatDate(selectedAdminDate)}.`
+        : `Nenhum agendamento registrado para ${formatDate(selectedAdminDate)}.`
+    }</div>`;
     return;
   }
 
@@ -350,6 +431,7 @@ adminExportButton.addEventListener("click", () => {
 
 adminStatusFilter.addEventListener("change", renderAppointments);
 adminDateInput.addEventListener("change", renderAppointments);
+adminSearchInput.addEventListener("input", renderAppointments);
 cancelEditButton.addEventListener("click", closeEditPanel);
 
 [editServiceSelect, editProfessionalSelect, editDateInput].forEach((element) => {

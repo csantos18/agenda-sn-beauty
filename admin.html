@@ -46,13 +46,19 @@
             <option value="cancelado">Cancelado</option>
           </select>
         </label>
+        <label>
+          Buscar cliente
+          <input id="adminSearchInput" name="adminSearchInput" type="search" autocomplete="off" placeholder="Nome ou telefone" />
+        </label>
         <button type="submit">Abrir painel</button>
         <button class="ghost-button" type="button" id="adminExportButton">Exportar CSV</button>
         <button class="ghost-button" type="button" id="adminLockButton">Bloquear painel</button>
         <p id="adminStatus">Painel protegido. Apenas a profissional deve acessar a agenda completa.</p>
       </form>
 
+      <div class="app-message" id="adminMessage" role="status" aria-live="polite" hidden></div>
       <div class="admin-stats" id="adminStats" aria-live="polite"></div>
+      <section class="week-panel" id="adminWeekPanel" aria-live="polite"></section>
 
       <section class="admin-workspace">
         <div>

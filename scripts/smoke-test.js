@@ -13,6 +13,7 @@ const PROFESSIONAL = process.env.SMOKE_TEST_PROFESSIONAL || "Jacinta Santos";
 const results = [];
 
 async function main() {
+  expectUiContracts();
   await checkGet("home", "/");
   await checkGet("health", "/api/health");
   const services = await checkJson("services", "/api/services");
@@ -47,6 +48,17 @@ async function main() {
   if (results.some((item) => !item.ok)) {
     process.exitCode = 1;
   }
+}
+
+function expectUiContracts() {
+  const publicHtml = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  const adminHtml = fs.readFileSync(path.join(__dirname, "..", "admin.html"), "utf8");
+  const adminJs = fs.readFileSync(path.join(__dirname, "..", "admin.js"), "utf8");
+
+  record("public message region exists", publicHtml.includes('id="appMessage"'), "appMessage");
+  record("admin search exists", adminHtml.includes('id="adminSearchInput"'), "adminSearchInput");
+  record("admin week panel exists", adminHtml.includes('id="adminWeekPanel"'), "adminWeekPanel");
+  record("admin search filters appointments", adminJs.includes("appointmentMatchesSearch"), "appointmentMatchesSearch");
 }
 
 async function checkGet(name, route) {

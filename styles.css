@@ -128,7 +128,7 @@ a {
 }
 
 .admin-panel-dedicated {
-  grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.55fr) minmax(150px, 0.45fr) auto auto auto;
+  grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.55fr) minmax(150px, 0.45fr) minmax(170px, 0.7fr) auto auto auto;
   margin-bottom: 18px;
 }
 
@@ -545,6 +545,70 @@ dd {
   margin-bottom: 16px;
 }
 
+.app-message {
+  position: sticky;
+  top: 76px;
+  z-index: 12;
+  margin-bottom: 14px;
+  border: 1px solid rgba(31, 143, 95, 0.26);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #f0fbf5;
+  color: #185f3f;
+  font-weight: 800;
+  box-shadow: 0 10px 24px rgba(31, 143, 95, 0.14);
+}
+
+body > .app-message {
+  top: 72px;
+  margin: 12px clamp(18px, 5vw, 64px) 0;
+}
+
+.week-panel {
+  margin-bottom: 18px;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.week-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--white);
+}
+
+.week-card.selected {
+  border-color: rgba(142, 68, 173, 0.45);
+  background: var(--soft);
+}
+
+.week-card span,
+.week-card strong,
+.week-card small {
+  display: block;
+}
+
+.week-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.week-card strong {
+  margin-top: 6px;
+  font-size: 0.98rem;
+}
+
+.week-card small {
+  margin-top: 5px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .stat-card {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -913,7 +977,8 @@ dd {
   .policy-grid,
   .privacy-grid,
   .admin-stats,
-  .contact-grid {
+  .contact-grid,
+  .week-grid {
     grid-template-columns: repeat(2, minmax(160px, 1fr));
   }
 }
@@ -1091,9 +1156,18 @@ dd {
   .privacy-grid,
   .admin-stats,
   .contact-grid,
+  .week-grid,
   .form-row,
   .lookup-form {
     grid-template-columns: 1fr;
+  }
+
+  .app-message {
+    top: 112px;
+  }
+
+  body > .app-message {
+    margin: 10px 16px 0;
   }
 
   .lookup-form {
