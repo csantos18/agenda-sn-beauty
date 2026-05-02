@@ -176,6 +176,7 @@ function hideBookingConfirmation() {
 }
 
 function updateAdminStatus(message) {
+  if (!adminStatus || !adminPinInput) return;
   syncAdminVisibility();
   adminStatus.textContent =
     message || (adminAuthenticated ? "Painel administrativo liberado neste navegador." : "Painel protegido. Apenas a profissional deve acessar a agenda completa.");
@@ -365,6 +366,7 @@ function renderAdminStats(items, selectedDate) {
 }
 
 function renderAppointments() {
+  if (!appointmentsList) return;
   if (!adminAuthenticated) {
     appointments = [];
     renderAdminStats([], new Date().toISOString().slice(0, 10));
@@ -515,7 +517,7 @@ bookingForm.addEventListener("submit", async (event) => {
   }
 });
 
-appointmentsList.addEventListener("click", async (event) => {
+if (appointmentsList) appointmentsList.addEventListener("click", async (event) => {
   const button = event.target.closest("button[data-action]");
   if (!button) return;
 
@@ -580,7 +582,7 @@ document.querySelector("#clientPhone").addEventListener("input", (event) => {
   event.target.value = formatPhone(event.target.value);
 });
 
-adminForm.addEventListener("submit", async (event) => {
+if (adminForm) adminForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const password = adminPinInput.value.trim();
 
@@ -610,7 +612,7 @@ adminForm.addEventListener("submit", async (event) => {
   }
 });
 
-adminLockButton.addEventListener("click", async () => {
+if (adminLockButton) adminLockButton.addEventListener("click", async () => {
   adminAuthenticated = false;
   editingAppointmentId = null;
   appointments = [];
@@ -623,9 +625,9 @@ adminLockButton.addEventListener("click", async () => {
   updateAdminStatus("Painel bloqueado neste navegador.");
 });
 
-adminStatusFilter.addEventListener("change", renderAppointments);
+if (adminStatusFilter) adminStatusFilter.addEventListener("change", renderAppointments);
 
-adminExportButton.addEventListener("click", () => {
+if (adminExportButton) adminExportButton.addEventListener("click", () => {
   if (!adminAuthenticated) {
     updateAdminStatus("Abra o painel antes de exportar a agenda.");
     return;
@@ -668,7 +670,7 @@ reviewForm.addEventListener("submit", async (event) => {
   });
 });
 
-adminDateInput.addEventListener("change", renderAppointments);
+if (adminDateInput) adminDateInput.addEventListener("change", renderAppointments);
 window.addEventListener("hashchange", syncAdminVisibility);
 
 async function init() {
@@ -681,10 +683,6 @@ async function init() {
     renderProfessionals();
     renderPaymentMethods();
     await loadAvailability();
-    const session = await api("/api/admin/session", { admin: true });
-    adminAuthenticated = Boolean(session.authenticated);
-    updateAdminStatus();
-    await loadAppointments();
     await loadReviews();
     renderSummary();
   } catch (error) {

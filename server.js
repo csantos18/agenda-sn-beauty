@@ -589,7 +589,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.get("/admin", (req, res) => {
-  res.redirect("/#agenda");
+  res.sendFile(path.join(__dirname, "admin.html"));
 });
 
 app.get("/api/admin/session", (req, res) => {

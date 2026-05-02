@@ -12,6 +12,7 @@ Organizar os atendimentos do salão de forma simples para a cliente e segura par
 - Agendamento com cliente, telefone, serviço, profissional, data e horário.
 - Validação para evitar conflito entre atendimentos pelo tempo total de cada serviço.
 - Painel administrativo protegido por login com senha e sessão HTTP-only.
+- Página administrativa dedicada em `/admin`, separada da experiência pública da cliente.
 - Filtro por data no painel administrativo.
 - Dashboard administrativo com estatísticas da data selecionada.
 - Cancelamento, remarcação e conclusão de atendimentos.
@@ -118,6 +119,7 @@ Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas 
 ## Rotas da API
 
 - `GET /api/health`
+- `GET /admin`
 - `GET /api/services`
 - `GET /api/professionals`
 - `GET /api/payment-methods`

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel do Salão | Agenda SN Beauty</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="admin-page">
+    <header class="admin-topbar">
+      <div>
+        <span class="brand-mark">SN</span>
+        <div>
+          <strong>Painel do salão</strong>
+          <span>Agenda SN Beauty</span>
+        </div>
+      </div>
+      <a class="ghost-button" href="/">Ver site público</a>
+    </header>
+
+    <main class="admin-shell">
+      <section class="admin-hero">
+        <div>
+          <p class="eyebrow">Área da administradora</p>
+          <h1>Agenda do dia</h1>
+          <p>Segunda a sábado: 08:00 às 18:00. Domingos e feriados: 08:00 às 14:00.</p>
+        </div>
+      </section>
+
+      <form class="admin-panel admin-panel-dedicated" id="adminForm">
+        <label>
+          Senha administrativa
+          <input id="adminPinInput" name="adminPinInput" type="password" autocomplete="current-password" placeholder="Digite a senha do salão" />
+        </label>
+        <label>
+          Ver data
+          <input id="adminDateInput" name="adminDateInput" type="date" />
+        </label>
+        <label>
+          Status
+          <select id="adminStatusFilter" name="adminStatusFilter">
+            <option value="todos">Todos</option>
+            <option value="pendente">Pendente</option>
+            <option value="confirmado">Confirmado</option>
+            <option value="concluido">Concluído</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </label>
+        <button type="submit">Abrir painel</button>
+        <button class="ghost-button" type="button" id="adminExportButton">Exportar CSV</button>
+        <button class="ghost-button" type="button" id="adminLockButton">Bloquear painel</button>
+        <p id="adminStatus">Painel protegido. Apenas a profissional deve acessar a agenda completa.</p>
+      </form>
+
+      <div class="admin-stats" id="adminStats" aria-live="polite"></div>
+
+      <section class="admin-workspace">
+        <div>
+          <div class="section-heading compact">
+            <p class="eyebrow">Atendimentos</p>
+            <h2>Marcações das clientes</h2>
+          </div>
+          <div class="appointments" id="appointmentsList"></div>
+        </div>
+
+        <aside class="admin-edit-panel" id="adminEditPanel" hidden>
+          <div class="section-heading compact">
+            <p class="eyebrow">Remarcação</p>
+            <h2>Editar horário</h2>
+          </div>
+          <form id="adminRescheduleForm">
+            <label>
+              Nome da cliente
+              <input id="editClientName" required />
+            </label>
+            <label>
+              Telefone
+              <input id="editClientPhone" type="tel" inputmode="tel" required />
+            </label>
+            <label>
+              Serviço
+              <select id="editServiceSelect" required></select>
+            </label>
+            <label>
+              Profissional
+              <select id="editProfessionalSelect" required></select>
+            </label>
+            <label>
+              Pagamento
+              <select id="editPaymentSelect" required></select>
+            </label>
+            <div class="form-row">
+              <label>
+                Data
+                <input id="editDateInput" type="date" required />
+              </label>
+              <label>
+                Horário
+                <select id="editTimeSelect" required></select>
+              </label>
+            </div>
+            <label>
+              Observações
+              <textarea id="editNotesInput"></textarea>
+            </label>
+            <button type="submit">Salvar remarcação</button>
+            <button class="ghost-button" type="button" id="cancelEditButton">Cancelar edição</button>
+          </form>
+        </aside>
+      </section>
+    </main>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

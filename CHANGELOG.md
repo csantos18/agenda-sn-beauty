@@ -6,6 +6,7 @@
 
 - Confirmacao pos-agendamento com protocolo, status e resumo do pedido.
 - Teste automatizado para impedir conflito parcial entre atendimentos.
+- Pagina administrativa dedicada em `/admin`, separada da pagina publica das clientes.
 
 ### Alterado
 
