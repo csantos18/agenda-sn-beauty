@@ -817,15 +817,15 @@ dd {
 
   .hero::after {
     background:
-      linear-gradient(180deg, rgba(255, 249, 252, 0.92), rgba(255, 249, 252, 0.74) 42%, rgba(77, 49, 85, 0.58)),
-      linear-gradient(90deg, rgba(255, 249, 252, 0.96), rgba(255, 249, 252, 0.5), rgba(255, 249, 252, 0.24));
+      linear-gradient(180deg, rgba(255, 249, 252, 0.82), rgba(245, 228, 247, 0.6) 38%, rgba(87, 47, 101, 0.72)),
+      linear-gradient(90deg, rgba(255, 249, 252, 0.9), rgba(174, 112, 190, 0.34), rgba(108, 52, 131, 0.18));
   }
 
   .hero h1 {
     max-width: 12ch;
     font-size: clamp(2.35rem, 11vw, 3rem);
     line-height: 1.02;
-    color: var(--plum);
+    color: var(--rose-dark);
   }
 
   .hero p {
@@ -852,7 +852,8 @@ dd {
     width: 100%;
     margin-top: 2px;
     min-height: 48px;
-    box-shadow: 0 12px 24px rgba(142, 68, 173, 0.2);
+    background: var(--rose);
+    box-shadow: 0 12px 24px rgba(142, 68, 173, 0.28);
   }
 
   .hero-panel {
@@ -869,9 +870,9 @@ dd {
   }
 
   .hero-panel div {
-    border-color: rgba(255, 255, 255, 0.7);
-    background: rgba(255, 255, 255, 0.72);
-    box-shadow: 0 10px 26px rgba(93, 52, 67, 0.11);
+    border-color: rgba(255, 255, 255, 0.56);
+    background: rgba(255, 255, 255, 0.52);
+    box-shadow: 0 10px 26px rgba(93, 52, 67, 0.16);
   }
 
   .hero-panel div:nth-child(n + 3) {
