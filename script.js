@@ -45,7 +45,7 @@ function pluralize(count, singular, plural) {
 }
 
 function availableLabel(count) {
-  return count === 1 ? "1 disponível" : `${count} disponíveis`;
+  return count === 1 ? "1 horário livre" : `${count} horários livres`;
 }
 
 function todayBusinessISO() {
