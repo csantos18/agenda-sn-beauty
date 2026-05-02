@@ -28,6 +28,7 @@ const lookupDate = document.querySelector("#lookupDate");
 const lookupResults = document.querySelector("#lookupResults");
 const LOCAL_API_ORIGIN = "http://localhost:5175";
 const SALON_WHATSAPP = "5561981561421";
+const BUSINESS_TIME_ZONE = "America/Sao_Paulo";
 
 function money(value) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -35,6 +36,17 @@ function money(value) {
 
 function pluralize(count, singular, plural) {
   return count === 1 ? `${count} ${singular}` : `${count} ${plural}`;
+}
+
+function todayBusinessISO() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BUSINESS_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 function formatDate(value) {
@@ -293,7 +305,7 @@ function renderReviews(average) {
 }
 
 function setInitialDate() {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayBusinessISO();
   dateInput.value = today;
   dateInput.min = today;
   if (lookupDate) {
@@ -313,7 +325,7 @@ async function loadTodayAvailabilitySummary() {
 
   try {
     const params = new URLSearchParams({
-      date: new Date().toISOString().slice(0, 10),
+      date: todayBusinessISO(),
       professional: professionals[0],
       serviceId: String(services[0].id),
     });

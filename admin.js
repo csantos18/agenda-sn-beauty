@@ -25,6 +25,7 @@ const editPaymentSelect = document.querySelector("#editPaymentSelect");
 const editDateInput = document.querySelector("#editDateInput");
 const editTimeSelect = document.querySelector("#editTimeSelect");
 const editNotesInput = document.querySelector("#editNotesInput");
+const BUSINESS_TIME_ZONE = "America/Sao_Paulo";
 
 function money(value) {
   return Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -32,6 +33,17 @@ function money(value) {
 
 function formatDate(value) {
   return new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR");
+}
+
+function todayBusinessISO() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BUSINESS_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 function escapeHtml(value) {
@@ -132,7 +144,7 @@ function renderAdminStats(items, selectedDate) {
 }
 
 function visibleAppointments() {
-  const selectedAdminDate = adminDateInput.value || new Date().toISOString().slice(0, 10);
+  const selectedAdminDate = adminDateInput.value || todayBusinessISO();
   const selectedStatus = adminStatusFilter.value || "todos";
   return appointments
     .filter(
@@ -164,12 +176,12 @@ function buildClientWhatsAppUrl(appointment, mode = "contact") {
 function renderAppointments() {
   if (!adminAuthenticated) {
     appointments = [];
-    renderAdminStats([], adminDateInput.value || new Date().toISOString().slice(0, 10));
+    renderAdminStats([], adminDateInput.value || todayBusinessISO());
     appointmentsList.innerHTML = '<div class="empty-state">Digite a senha administrativa para ver a agenda completa.</div>';
     return;
   }
 
-  const selectedAdminDate = adminDateInput.value || new Date().toISOString().slice(0, 10);
+  const selectedAdminDate = adminDateInput.value || todayBusinessISO();
   const sorted = visibleAppointments();
   renderAdminStats(sorted, selectedAdminDate);
 
@@ -371,7 +383,7 @@ adminRescheduleForm.addEventListener("submit", async (event) => {
 });
 
 async function init() {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayBusinessISO();
   adminDateInput.value = today;
   editDateInput.min = today;
 
