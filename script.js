@@ -45,7 +45,9 @@ function pluralize(count, singular, plural) {
 }
 
 function availableLabel(count) {
-  return count === 1 ? "1 opção para agendar" : `${count} opções para agendar`;
+  return count === 1
+    ? "1 horário livre para agendamento"
+    : `${count} horários livres para agendamento`;
 }
 
 function todayBusinessISO() {
