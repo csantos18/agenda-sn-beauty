@@ -15,6 +15,7 @@ const results = [];
 async function main() {
   expectUiContracts();
   await checkGet("home", "/");
+  await checkGet("terms", "/termos");
   await checkGet("health", "/api/health");
   const services = await checkJson("services", "/api/services");
   await checkJson("professionals", "/api/professionals");
@@ -35,8 +36,11 @@ async function main() {
   if (ADMIN_PIN) {
     const cookie = await loginAdmin();
     await expectAdminSeesAppointment(cookie, appointment.id);
+    await expectAdminMonitor(cookie);
+    await expectAdminAudit(cookie);
     await confirmAppointment(cookie, appointment.id);
     await exportCsv(cookie);
+    await exportBackup(cookie);
     await cancelAppointment(cookie, appointment.id);
     await cleanupLocalAppointment(cookie, appointment.id);
   } else {
@@ -62,6 +66,10 @@ function expectUiContracts() {
   record("admin search filters appointments", adminJs.includes("appointmentMatchesSearch"), "appointmentMatchesSearch");
   record("week cards are clickable", adminJs.includes("data-week-date") && adminJs.includes("selectWeekDate"), "selectWeekDate");
   record("deposit rule visible", publicHtml.includes("20%") && publicJs.includes("DEPOSIT_RATE = 0.2"), "deposit 20%");
+  record("terms page linked", publicHtml.includes('href="/termos"'), "terms link");
+  record("admin monitor exists", adminHtml.includes('id="adminMonitorPanel"') && adminJs.includes("/api/admin/monitor"), "monitor panel");
+  record("admin audit exists", adminHtml.includes('id="adminAuditList"') && adminJs.includes("/api/admin/audit"), "audit panel");
+  record("admin backup exists", adminHtml.includes('id="adminBackupButton"') && adminJs.includes("/api/admin/backup"), "backup button");
 }
 
 async function checkGet(name, route) {
@@ -190,6 +198,32 @@ async function exportCsv(cookie) {
   const response = await request("/api/admin/export", { headers: { Cookie: cookie } });
   const text = await response.text();
   record("admin exports csv", response.ok && text.includes("cliente") && text.includes("telefone") && text.includes("sinal_20"), `status=${response.status}`);
+}
+
+async function expectAdminMonitor(cookie) {
+  const response = await request("/api/admin/monitor", { headers: { Cookie: cookie } });
+  const data = await response.json();
+  const valid = response.ok && data.status === "ok" && typeof data.auditAvailable === "boolean" && typeof data.notificationsConfigured === "boolean";
+  record("admin monitor reports system health", valid, `status=${response.status} storage=${data.storage || ""}`);
+}
+
+async function expectAdminAudit(cookie) {
+  const response = await request("/api/admin/audit", { headers: { Cookie: cookie } });
+  const data = await response.json();
+  const valid = response.ok && Array.isArray(data.logs);
+  record("admin audit records appointment", valid, `status=${response.status} logs=${data.logs?.length || 0}`);
+}
+
+async function exportBackup(cookie) {
+  const response = await request("/api/admin/backup", { headers: { Cookie: cookie } });
+  const data = await response.json();
+  const valid =
+    response.ok &&
+    Array.isArray(data.appointments) &&
+    Array.isArray(data.reviews) &&
+    Array.isArray(data.auditLogs) &&
+    Boolean(data.generatedAt);
+  record("admin exports json backup", valid, `status=${response.status}`);
 }
 
 async function cancelAppointment(cookie, id) {

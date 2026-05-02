@@ -15,7 +15,10 @@ const adminWeekPanel = document.querySelector("#adminWeekPanel");
 const adminMessage = document.querySelector("#adminMessage");
 const adminLockButton = document.querySelector("#adminLockButton");
 const adminExportButton = document.querySelector("#adminExportButton");
+const adminBackupButton = document.querySelector("#adminBackupButton");
 const adminStatus = document.querySelector("#adminStatus");
+const adminMonitorPanel = document.querySelector("#adminMonitorPanel");
+const adminAuditList = document.querySelector("#adminAuditList");
 const appointmentsList = document.querySelector("#appointmentsList");
 const adminEditPanel = document.querySelector("#adminEditPanel");
 const adminRescheduleForm = document.querySelector("#adminRescheduleForm");
@@ -100,6 +103,25 @@ function statusLabel(status) {
   return labels[status] || status;
 }
 
+function actionLabel(action) {
+  const labels = {
+    admin_backup_export: "Backup exportado",
+    admin_csv_export: "CSV exportado",
+    admin_login: "Login administrativo",
+    admin_logout: "Painel bloqueado",
+    appointment_cancelled: "Agendamento desmarcado",
+    appointment_completed: "Agendamento concluído",
+    appointment_confirmed: "Agendamento confirmado",
+    appointment_created: "Novo pedido recebido",
+    appointment_deleted: "Agendamento removido",
+    appointment_rescheduled: "Agendamento remarcado",
+    notification_failed: "Notificação falhou",
+    notification_sent: "Notificação enviada",
+    review_created: "Nova avaliação",
+  };
+  return labels[action] || action;
+}
+
 function normalizeStatus(status) {
   return status === "agendado" ? "pendente" : status;
 }
@@ -138,6 +160,91 @@ function updateAdminStatus(message) {
   adminStatus.textContent =
     message || (adminAuthenticated ? "Painel administrativo liberado neste navegador." : "Digite a senha para abrir a agenda completa.");
   adminPinInput.value = adminAuthenticated ? "********" : "";
+}
+
+function renderMonitor(data) {
+  if (!adminAuthenticated || !data) {
+    adminMonitorPanel.innerHTML = "";
+    return;
+  }
+
+  adminMonitorPanel.innerHTML = `
+    <article>
+      <span>Banco</span>
+      <strong>${escapeHtml(data.storage === "supabase" ? "Supabase ativo" : "Arquivo local")}</strong>
+    </article>
+    <article>
+      <span>Hoje</span>
+      <strong>${escapeHtml(String(data.todayAppointments))} atendimento${data.todayAppointments === 1 ? "" : "s"}</strong>
+    </article>
+    <article>
+      <span>Pendências</span>
+      <strong>${escapeHtml(String(data.pendingAppointments))} pedido${data.pendingAppointments === 1 ? "" : "s"}</strong>
+    </article>
+    <article>
+      <span>Auditoria</span>
+      <strong>${data.auditAvailable ? "Ativa" : "Pendente no Supabase"}</strong>
+    </article>
+    <article>
+      <span>Notificação</span>
+      <strong>${data.notificationsConfigured ? "Webhook ativo" : "Configurar webhook"}</strong>
+    </article>
+    <article>
+      <span>Backup</span>
+      <strong>${data.storage === "supabase" ? "Exportação segura" : "Somente local"}</strong>
+    </article>
+  `;
+}
+
+function renderAudit(logs) {
+  if (!adminAuthenticated) {
+    adminAuditList.innerHTML = '<div class="empty-state">Abra o painel para ver a auditoria.</div>';
+    return;
+  }
+
+  if (!logs.length) {
+    adminAuditList.innerHTML = '<div class="empty-state">Nenhum evento de auditoria registrado ainda.</div>';
+    return;
+  }
+
+  adminAuditList.innerHTML = logs
+    .map(
+      (log) => `
+        <article class="audit-item">
+          <strong>${escapeHtml(actionLabel(log.action))}</strong>
+          <span>${escapeHtml(new Date(log.createdAt).toLocaleString("pt-BR"))}</span>
+          <p>${escapeHtml(log.summary || "")}</p>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+async function loadMonitor() {
+  if (!adminAuthenticated) {
+    renderMonitor(null);
+    return;
+  }
+
+  try {
+    renderMonitor(await api("/api/admin/monitor"));
+  } catch (error) {
+    adminMonitorPanel.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+  }
+}
+
+async function loadAudit() {
+  if (!adminAuthenticated) {
+    renderAudit([]);
+    return;
+  }
+
+  try {
+    const data = await api("/api/admin/audit");
+    renderAudit(data.logs || []);
+  } catch (error) {
+    adminAuditList.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+  }
 }
 
 function renderOptions() {
@@ -327,6 +434,7 @@ async function loadAppointments() {
 
   appointments = await api("/api/appointments");
   renderAppointments();
+  await Promise.all([loadMonitor(), loadAudit()]);
 }
 
 async function loadEditAvailability() {
@@ -431,6 +539,8 @@ adminLockButton.addEventListener("click", async () => {
     // The UI should still lock even if the logout request cannot complete.
   }
   renderAppointments();
+  renderMonitor(null);
+  renderAudit([]);
   updateAdminStatus("Painel bloqueado neste navegador.");
 });
 
@@ -441,6 +551,15 @@ adminExportButton.addEventListener("click", () => {
   }
 
   window.location.href = "/api/admin/export";
+});
+
+adminBackupButton.addEventListener("click", () => {
+  if (!adminAuthenticated) {
+    updateAdminStatus("Abra o painel antes de exportar o backup.");
+    return;
+  }
+
+  window.location.href = "/api/admin/backup";
 });
 
 adminStatusFilter.addEventListener("change", renderAppointments);

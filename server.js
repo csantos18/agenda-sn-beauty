@@ -32,7 +32,9 @@ const ADMIN_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 80 })
 const ADMIN_LOGIN_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 12 });
 const ADMIN_SESSION_COOKIE = "sn_admin_session";
 const ADMIN_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
+const AUDIT_LOG_LIMIT = 200;
 let mutationQueue = Promise.resolve();
+let localAuditLogs = [];
 
 const weekdayTimes = buildTimes("08:00", "18:00", 30);
 const shortDayTimes = buildTimes("08:00", "14:00", 30);
@@ -193,6 +195,30 @@ function toSupabaseAppointment(appointment) {
   };
 }
 
+function fromSupabaseAuditLog(row) {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    actor: row.actor,
+    action: row.action,
+    appointmentId: row.appointment_id,
+    summary: row.summary,
+    metadata: row.metadata || {},
+  };
+}
+
+function toSupabaseAuditLog(entry) {
+  return {
+    id: entry.id,
+    created_at: entry.createdAt,
+    actor: entry.actor,
+    action: entry.action,
+    appointment_id: entry.appointmentId || null,
+    summary: entry.summary,
+    metadata: entry.metadata || {},
+  };
+}
+
 async function readSupabaseDb() {
   const seed = await readSeedDb();
   const [{ data: appointments, error: appointmentsError }, { data: reviews, error: reviewsError }] =
@@ -266,6 +292,60 @@ async function persistReview(db, review) {
 
   const { error } = await supabase.from("reviews").insert(review);
   if (error) throw error;
+}
+
+async function readAuditLogs(limit = 30) {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("audit_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.warn(`Auditoria indisponível no Supabase: ${error.message}`);
+      return [];
+    }
+
+    return (data || []).map(fromSupabaseAuditLog);
+  }
+
+  return localAuditLogs.slice(0, limit);
+}
+
+async function isAuditAvailable() {
+  if (!supabase) return true;
+
+  const { error } = await supabase.from("audit_logs").select("id").limit(1);
+  if (error) {
+    console.warn(`Monitor de auditoria pendente no Supabase: ${error.message}`);
+    return false;
+  }
+
+  return true;
+}
+
+async function recordAudit(action, details = {}) {
+  const entry = {
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString(),
+    actor: details.actor || "system",
+    action,
+    appointmentId: details.appointment?.id || details.appointmentId || null,
+    summary: cleanString(details.summary || action, 180),
+    metadata: details.metadata || {},
+  };
+
+  if (supabase) {
+    const { error } = await supabase.from("audit_logs").insert(toSupabaseAuditLog(entry));
+    if (error) {
+      console.warn(`Falha ao gravar auditoria: ${error.message}`);
+    }
+    return entry;
+  }
+
+  localAuditLogs = [entry, ...localAuditLogs].slice(0, AUDIT_LOG_LIMIT);
+  return entry;
 }
 
 function todayISO() {
@@ -630,9 +710,28 @@ async function notifyAppointmentCreated(appointment, services) {
 
     if (!response.ok) {
       console.warn(`Falha ao enviar notificação de agendamento: ${response.status}`);
+      await recordAudit("notification_failed", {
+        actor: "system",
+        appointment,
+        summary: `Falha ao notificar novo agendamento #${appointment.id}.`,
+        metadata: { status: response.status },
+      });
+      return;
     }
+
+    await recordAudit("notification_sent", {
+      actor: "system",
+      appointment,
+      summary: `Notificação enviada para o agendamento #${appointment.id}.`,
+    });
   } catch (error) {
     console.warn(`Falha ao enviar notificação de agendamento: ${error.message}`);
+    await recordAudit("notification_failed", {
+      actor: "system",
+      appointment,
+      summary: `Falha ao notificar novo agendamento #${appointment.id}.`,
+      metadata: { message: cleanString(error.message, 120) },
+    });
   }
 }
 
@@ -692,15 +791,41 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", app: "Agenda SN Beauty", storage: supabase ? "supabase" : "local-file" });
 });
 
+app.get("/api/admin/monitor", requireAdmin, async (req, res) => {
+  const db = await readDb();
+  const today = todayISO();
+  const todayAppointments = db.appointments.filter((appointment) => appointment.date === today);
+  const pending = db.appointments.filter((appointment) => normalizeAppointmentStatus(appointment.status) === "pendente");
+  const auditAvailable = await isAuditAvailable();
+
+  res.json({
+    status: "ok",
+    storage: supabase ? "supabase" : "local-file",
+    supabaseConfigured: Boolean(supabase),
+    notificationsConfigured: Boolean(NOTIFICATION_WEBHOOK_URL),
+    today,
+    appointments: db.appointments.length,
+    todayAppointments: todayAppointments.length,
+    pendingAppointments: pending.length,
+    reviews: db.reviews.length,
+    auditAvailable,
+    checkedAt: new Date().toISOString(),
+  });
+});
+
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
+});
+
+app.get(["/termos", "/privacidade"], (req, res) => {
+  res.sendFile(path.join(__dirname, "termos.html"));
 });
 
 app.get("/api/admin/session", (req, res) => {
   res.json({ authenticated: isValidAdminSession(req) });
 });
 
-app.post("/api/admin/login", ADMIN_LOGIN_LIMIT, (req, res) => {
+app.post("/api/admin/login", ADMIN_LOGIN_LIMIT, async (req, res) => {
   if (!ADMIN_PIN) {
     res.status(503).json({ error: "Painel administrativo bloqueado. Configure ADMIN_PIN no Render." });
     return;
@@ -712,11 +837,16 @@ app.post("/api/admin/login", ADMIN_LOGIN_LIMIT, (req, res) => {
   }
 
   setAdminSessionCookie(req, res);
+  await recordAudit("admin_login", { actor: "admin", summary: "Login administrativo realizado." });
   res.json({ authenticated: true });
 });
 
-app.post("/api/admin/logout", (req, res) => {
+app.post("/api/admin/logout", async (req, res) => {
+  const wasAuthenticated = isValidAdminSession(req);
   clearAdminSessionCookie(req, res);
+  if (wasAuthenticated) {
+    await recordAudit("admin_logout", { actor: "admin", summary: "Painel administrativo bloqueado." });
+  }
   res.json({ authenticated: false });
 });
 
@@ -804,6 +934,30 @@ app.get("/api/appointments", requireAdmin, async (req, res) => {
   res.json(db.appointments.map((appointment) => enrichAppointment(appointment, db.services)));
 });
 
+app.get("/api/admin/audit", requireAdmin, async (req, res) => {
+  const logs = await readAuditLogs(30);
+  res.json({ logs });
+});
+
+app.get("/api/admin/backup", requireAdmin, async (req, res) => {
+  const db = await readDb();
+  const auditLogs = await readAuditLogs(AUDIT_LOG_LIMIT);
+  const backup = {
+    generatedAt: new Date().toISOString(),
+    storage: supabase ? "supabase" : "local-file",
+    services: db.services,
+    professionals: db.professionals,
+    appointments: db.appointments,
+    reviews: db.reviews,
+    auditLogs,
+  };
+
+  await recordAudit("admin_backup_export", { actor: "admin", summary: "Backup JSON exportado pelo painel administrativo." });
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename=agenda-sn-beauty-backup-${todayISO()}.json`);
+  res.json(backup);
+});
+
 app.post("/api/appointments", PUBLIC_WRITE_LIMIT, async (req, res) => {
   await withMutationLock(async () => {
     const db = await readDb();
@@ -829,6 +983,12 @@ app.post("/api/appointments", PUBLIC_WRITE_LIMIT, async (req, res) => {
     const appointment = { id: nextId(db.appointments), ...payload };
     db.appointments.unshift(appointment);
     await persistAppointment(db, appointment);
+    await recordAudit("appointment_created", {
+      actor: "client",
+      appointment,
+      summary: `Novo pedido para ${payload.date} às ${payload.time}.`,
+      metadata: { serviceId: payload.serviceId, status: payload.status },
+    });
     await notifyAppointmentCreated(appointment, db.services);
     res.status(201).json(publicAppointment(appointment, db.services));
   });
@@ -846,6 +1006,11 @@ app.patch("/api/appointments/:id/cancel", requireAdmin, ADMIN_WRITE_LIMIT, async
 
   appointment.status = "cancelado";
   await persistAppointment(db, appointment);
+  await recordAudit("appointment_cancelled", {
+    actor: "admin",
+    appointment,
+    summary: `Agendamento #${appointment.id} desmarcado.`,
+  });
   res.json(enrichAppointment(appointment, db.services));
 });
 
@@ -861,6 +1026,11 @@ app.patch("/api/appointments/:id/confirm", requireAdmin, ADMIN_WRITE_LIMIT, asyn
 
   appointment.status = "confirmado";
   await persistAppointment(db, appointment);
+  await recordAudit("appointment_confirmed", {
+    actor: "admin",
+    appointment,
+    summary: `Agendamento #${appointment.id} confirmado.`,
+  });
   res.json(enrichAppointment(appointment, db.services));
 });
 
@@ -881,6 +1051,11 @@ app.delete("/api/appointments/:id", requireAdmin, ADMIN_WRITE_LIMIT, async (req,
 
   db.appointments.splice(index, 1);
   await removeAppointment(db, id);
+  await recordAudit("appointment_deleted", {
+    actor: "admin",
+    appointmentId: id,
+    summary: `Agendamento #${id} removido no ambiente local.`,
+  });
   res.status(204).end();
 });
 
@@ -896,6 +1071,11 @@ app.patch("/api/appointments/:id/complete", requireAdmin, ADMIN_WRITE_LIMIT, asy
 
   appointment.status = "concluido";
   await persistAppointment(db, appointment);
+  await recordAudit("appointment_completed", {
+    actor: "admin",
+    appointment,
+    summary: `Agendamento #${appointment.id} concluído.`,
+  });
   res.json(enrichAppointment(appointment, db.services));
 });
 
@@ -931,6 +1111,12 @@ app.patch("/api/appointments/:id/reschedule", requireAdmin, ADMIN_WRITE_LIMIT, a
 
     Object.assign(appointment, payload);
     await persistAppointment(db, appointment);
+    await recordAudit("appointment_rescheduled", {
+      actor: "admin",
+      appointment,
+      summary: `Agendamento #${appointment.id} remarcado para ${appointment.date} às ${appointment.time}.`,
+      metadata: { status: appointment.status },
+    });
     res.json(enrichAppointment(appointment, db.services));
   });
 });
@@ -963,6 +1149,7 @@ app.get("/api/admin/export", requireAdmin, async (req, res) => {
     ),
   ].join("\n");
 
+  await recordAudit("admin_csv_export", { actor: "admin", summary: "CSV da agenda exportado." });
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader("Content-Disposition", "attachment; filename=agenda-sn-beauty.csv");
   res.send(`\uFEFF${csv}`);
@@ -1012,6 +1199,11 @@ app.post("/api/reviews", REVIEW_WRITE_LIMIT, async (req, res) => {
 
   db.reviews.unshift(review);
   await persistReview(db, review);
+  await recordAudit("review_created", {
+    actor: "client",
+    summary: `Nova avaliação pública com nota ${rating}.`,
+    metadata: { rating },
+  });
   res.status(201).json(review);
 });
 

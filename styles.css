@@ -139,7 +139,9 @@ a {
   align-items: start;
 }
 
+.audit-panel,
 .admin-edit-panel {
+  grid-column: 2;
   position: sticky;
   top: 90px;
   border: 1px solid var(--line);
@@ -147,6 +149,10 @@ a {
   padding: 18px;
   background: var(--white);
   box-shadow: 0 14px 38px rgba(93, 52, 67, 0.08);
+}
+
+.admin-edit-panel {
+  top: 330px;
 }
 
 .brand-mark {
@@ -545,6 +551,74 @@ dd {
   margin-bottom: 16px;
 }
 
+.monitor-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.monitor-panel article {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: #ffffff;
+}
+
+.monitor-panel span,
+.monitor-panel strong {
+  display: block;
+}
+
+.monitor-panel span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.monitor-panel strong {
+  margin-top: 6px;
+  font-size: 1rem;
+}
+
+.audit-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.audit-list {
+  display: grid;
+  gap: 10px;
+  max-height: 520px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.audit-item {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff9fc;
+}
+
+.audit-item strong,
+.audit-item span {
+  display: block;
+}
+
+.audit-item span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.audit-item p {
+  margin: 8px 0 0;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
 .app-message {
   position: sticky;
   top: 76px;
@@ -770,7 +844,7 @@ body > .app-message {
 }
 
 .privacy-grid {
-  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .policy-grid article,
@@ -893,6 +967,61 @@ body > .app-message {
   background: #166f49;
 }
 
+.policy-link {
+  background: var(--rose-dark);
+}
+
+.terms-page {
+  background: #ffffff;
+}
+
+.terms-shell {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: clamp(28px, 6vw, 64px) clamp(16px, 4vw, 28px);
+}
+
+.terms-hero {
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 22px;
+}
+
+.terms-hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  line-height: 1.05;
+}
+
+.terms-hero p,
+.terms-card p,
+.terms-card li {
+  color: var(--muted);
+  line-height: 1.62;
+}
+
+.terms-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.terms-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: clamp(16px, 3vw, 22px);
+  background: var(--paper);
+}
+
+.terms-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+.terms-card ul {
+  margin: 10px 0 0;
+  padding-left: 20px;
+}
+
 .floating-whatsapp {
   position: fixed;
   right: 18px;
@@ -979,6 +1108,12 @@ body > .app-message {
   }
 
   .admin-edit-panel {
+    grid-column: auto;
+    position: static;
+  }
+
+  .audit-panel {
+    grid-column: auto;
     position: static;
   }
 
@@ -1169,6 +1304,7 @@ body > .app-message {
   .policy-grid,
   .privacy-grid,
   .admin-stats,
+  .monitor-panel,
   .contact-grid,
   .week-grid,
   .form-row,

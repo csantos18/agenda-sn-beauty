@@ -52,11 +52,13 @@
         </label>
         <button type="submit">Abrir painel</button>
         <button class="ghost-button" type="button" id="adminExportButton">Exportar CSV</button>
+        <button class="ghost-button" type="button" id="adminBackupButton">Backup JSON</button>
         <button class="ghost-button" type="button" id="adminLockButton">Bloquear painel</button>
         <p id="adminStatus">Painel protegido. Apenas a profissional deve acessar a agenda completa.</p>
       </form>
 
       <div class="app-message" id="adminMessage" role="status" aria-live="polite" hidden></div>
+      <section class="monitor-panel" id="adminMonitorPanel" aria-live="polite"></section>
       <div class="admin-stats" id="adminStats" aria-live="polite"></div>
       <section class="week-panel" id="adminWeekPanel" aria-live="polite"></section>
 
@@ -68,6 +70,14 @@
           </div>
           <div class="appointments" id="appointmentsList"></div>
         </div>
+
+        <aside class="audit-panel" id="adminAuditPanel">
+          <div class="section-heading compact">
+            <p class="eyebrow">Auditoria</p>
+            <h2>Últimos eventos</h2>
+          </div>
+          <div class="audit-list" id="adminAuditList"></div>
+        </aside>
 
         <aside class="admin-edit-panel" id="adminEditPanel" hidden>
           <div class="section-heading compact">

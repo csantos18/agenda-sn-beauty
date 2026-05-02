@@ -15,6 +15,9 @@ Organizar os atendimentos do salão de forma simples para a cliente e segura par
 - Página administrativa dedicada em `/admin`, separada da experiência pública da cliente.
 - Filtro por data no painel administrativo.
 - Dashboard administrativo com estatísticas da data selecionada.
+- Monitor administrativo de Supabase, auditoria, notificações e volume de pedidos.
+- Auditoria administrativa com eventos de login, backup, exportação e mudanças de status.
+- Backup JSON protegido por sessão administrativa.
 - Cancelamento, remarcação e conclusão de atendimentos.
 - Avaliações das clientes com média de notas.
 - Confirmação do agendamento por WhatsApp com mensagem pronta.
@@ -23,7 +26,7 @@ Organizar os atendimentos do salão de forma simples para a cliente e segura par
 - Botão fixo de WhatsApp para contato rápido.
 - Notificação automática opcional para a dona do salão via webhook.
 - Seção de orientações para confirmação, atraso e bloqueio de horários.
-- Seção de privacidade e termos de uso com explicação sobre dados coletados e acesso restrito.
+- Página formal em `/termos` com privacidade, regra do sinal de 20% e responsabilidades.
 
 ## Como rodar
 
@@ -51,6 +54,12 @@ Com o servidor rodando, execute:
 
 ```bash
 npm run smoke
+```
+
+Para conferir os contratos responsivos de celular:
+
+```bash
+npm run mobile:check
 ```
 
 Para testar o site publicado:
@@ -89,6 +98,8 @@ Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas 
 
 `NOTIFICATION_WEBHOOK_URL` é opcional. Quando configurada, o back-end envia os dados do novo agendamento para um serviço externo, como Make, Zapier ou outro integrador.
 
+Se o monitor administrativo mostrar **Auditoria pendente no Supabase**, execute novamente o `supabase-schema.sql` no SQL Editor para criar a tabela `audit_logs`. O site continua aceitando agendamentos mesmo se a auditoria ainda estiver pendente, mas a recomendação de produção é deixar a auditoria ativa.
+
 Para importar os dados iniciais de `database.json` para o Supabase, configure `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` no `.env` local e execute:
 
 ```bash
@@ -112,6 +123,8 @@ Depois do deploy, confira `/api/health`. O campo `storage` deve mostrar `supabas
 - A seção pública de privacidade informa quais dados são coletados e como são usados.
 - Webhooks de notificação ficam apenas no servidor e não são expostos no front-end.
 - Em produção com Supabase, o servidor grava cada agendamento/avaliação de forma pontual, sem apagar a base inteira.
+- Rotas de monitoramento, auditoria, backup e exportação exigem sessão administrativa.
+- O backup JSON deve ser baixado e guardado apenas pela responsável do salão.
 
 ## Regras de Negócio
 
@@ -121,7 +134,8 @@ Depois do deploy, confira `/api/health`. O campo `storage` deve mostrar `supabas
 - Segunda a sábado: 08:00 às 18:00.
 - Domingos e feriados: 08:00 às 14:00.
 - Cancelamentos devem ser combinados com o salão.
-- O pagamento é realizado presencialmente após o atendimento.
+- O sinal de 20% é combinado pelo WhatsApp e não usa Pix/checkout online dentro do app.
+- O restante é pago conforme orientação da profissional.
 - Formas de pagamento aceitas: Pix, dinheiro, cartão de débito e cartão de crédito.
 - Observações da cliente ficam salvas junto ao agendamento.
 - Avaliações aceitam notas de 1 a 5.
@@ -138,6 +152,9 @@ Depois do deploy, confira `/api/health`. O campo `storage` deve mostrar `supabas
 - `GET /api/admin/session`
 - `POST /api/admin/login`
 - `POST /api/admin/logout`
+- `GET /api/admin/monitor` com sessão administrativa
+- `GET /api/admin/audit` com sessão administrativa
+- `GET /api/admin/backup` com sessão administrativa
 - `GET /api/appointments` com sessão administrativa
 - `POST /api/appointments`
 - `PATCH /api/appointments/:id/cancel` com sessão administrativa
