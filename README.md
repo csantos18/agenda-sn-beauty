@@ -18,6 +18,7 @@ Organizar os atendimentos do salão de forma simples para a cliente e segura par
 - Confirmação do agendamento por WhatsApp com mensagem pronta.
 - Botão fixo de WhatsApp para contato rápido.
 - Seção de orientações para confirmação, atraso e bloqueio de horários.
+- Seção de privacidade e termos de uso com explicação sobre dados coletados e acesso restrito.
 
 ## Como rodar
 
@@ -64,6 +65,7 @@ Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas 
 - O front-end não recebe nem expõe chaves secretas.
 - O servidor usa headers de segurança básicos, limite de JSON e rate limit para escritas públicas.
 - O Supabase está com Row Level Security habilitado nas tabelas criadas pelo schema.
+- A seção pública de privacidade informa quais dados são coletados e como são usados.
 
 ## Regras de Negócio
 

@@ -183,7 +183,8 @@ button:hover {
 .section,
 .reviews-section,
 .contact-section,
-.mothers-section {
+.mothers-section,
+.privacy-section {
   padding: clamp(36px, 6vw, 76px) clamp(18px, 5vw, 64px);
 }
 
@@ -477,13 +478,23 @@ dd {
   background: #ffffff;
 }
 
-.policy-grid {
+.privacy-section {
+  background: #ffffff;
+}
+
+.policy-grid,
+.privacy-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(180px, 1fr));
   gap: 14px;
 }
 
-.policy-grid article {
+.privacy-grid {
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+}
+
+.policy-grid article,
+.privacy-grid article {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 18px;
@@ -491,11 +502,13 @@ dd {
 }
 
 .policy-grid span,
-.policy-grid strong {
+.policy-grid strong,
+.privacy-grid span {
   display: block;
 }
 
-.policy-grid span {
+.policy-grid span,
+.privacy-grid span {
   color: var(--muted);
   font-weight: 800;
 }
@@ -505,7 +518,8 @@ dd {
   font-size: 1.08rem;
 }
 
-.policy-grid p {
+.policy-grid p,
+.privacy-grid p {
   margin: 8px 0 0;
   color: var(--muted);
   line-height: 1.5;
@@ -690,6 +704,7 @@ dd {
   .services-grid,
   .reviews-list,
   .policy-grid,
+  .privacy-grid,
   .contact-grid {
     grid-template-columns: repeat(2, minmax(160px, 1fr));
   }
@@ -731,6 +746,7 @@ dd {
   .services-grid,
   .reviews-list,
   .policy-grid,
+  .privacy-grid,
   .contact-grid,
   .form-row {
     grid-template-columns: 1fr;
