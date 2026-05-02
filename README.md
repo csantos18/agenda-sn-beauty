@@ -63,6 +63,12 @@ Para conferir os contratos responsivos de celular:
 npm run mobile:check
 ```
 
+Para abrir o app em um navegador headless e validar páginas, console, overflow, painel e screenshots:
+
+```bash
+npm run visual:check
+```
+
 Para testar o site publicado:
 
 ```bash

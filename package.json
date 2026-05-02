@@ -8,6 +8,7 @@
     "dev": "node server.js",
     "check": "node --check server.js && node --check script.js && node --check admin.js",
     "mobile:check": "node scripts/mobile-visual-test.js",
+    "visual:check": "node scripts/visual-browser-check.js",
     "smoke": "node scripts/smoke-test.js",
     "supabase:audit": "node scripts/check-supabase-audit.js",
     "supabase:seed": "node scripts/seed-supabase.js",
@@ -19,5 +20,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.105.1",
     "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "playwright": "^1.59.1"
   }
 }

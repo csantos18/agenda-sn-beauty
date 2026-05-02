@@ -17,6 +17,7 @@ async function main() {
   await checkGet("home", "/");
   await checkGet("terms", "/termos");
   await checkGet("health", "/api/health");
+  await expectProjectFilesBlocked();
   const services = await checkJson("services", "/api/services");
   await checkJson("professionals", "/api/professionals");
   await checkJson("payment methods", "/api/payment-methods");
@@ -90,6 +91,28 @@ async function checkJson(name, route) {
 async function expectAdminRouteProtected() {
   const response = await request("/api/appointments");
   record("admin route blocks public access", response.status === 401, `status=${response.status}`);
+}
+
+async function expectProjectFilesBlocked() {
+  const blockedFiles = [
+    "/.env.example",
+    "/.gitignore",
+    "/CHANGELOG.md",
+    "/database.json",
+    "/database.test-backup.json",
+    "/package.json",
+    "/render.yaml",
+    "/server.js",
+    "/scripts/smoke-test.js",
+    "/supabase-schema.sql",
+  ];
+  const responses = await Promise.all(blockedFiles.map((route) => request(route)));
+  const blocked = responses.every((response) => response.status === 404);
+  record(
+    "project files are not public",
+    blocked,
+    responses.map((response, index) => `${blockedFiles[index]}=${response.status}`).join(" "),
+  );
 }
 
 async function expectBusinessHours(serviceId) {

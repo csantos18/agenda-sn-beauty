@@ -75,10 +75,7 @@ function escapeHtml(value) {
 }
 
 function apiUrl(path) {
-  const isLocalHost = ["localhost", "127.0.0.1", ""].includes(window.location.hostname);
-  const isNodeServer = window.location.port === "5175";
-
-  if (window.location.protocol === "file:" || (isLocalHost && !isNodeServer)) {
+  if (window.location.protocol === "file:") {
     return `${LOCAL_API_ORIGIN}${path}`;
   }
 

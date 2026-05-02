@@ -51,7 +51,14 @@ app.set("trust proxy", 1);
 app.use(localDevCors);
 app.use(securityHeaders);
 app.use(express.json({ limit: "20kb" }));
-app.use(express.static(__dirname));
+app.use(blockProjectFiles);
+app.use(
+  express.static(__dirname, {
+    dotfiles: "deny",
+    extensions: ["html"],
+    index: "index.html",
+  }),
+);
 
 if (!ADMIN_PIN) {
   console.warn("ADMIN_PIN não configurado. O painel administrativo ficará bloqueado.");
@@ -410,7 +417,50 @@ function securityHeaders(req, res, next) {
   next();
 }
 
+function blockProjectFiles(req, res, next) {
+  const pathname = safeDecodePath((req.path || "").split("?")[0]).replace(/\\/g, "/");
+  const lowerPathname = pathname.toLowerCase();
+  const protectedPaths = [
+    "/.env",
+    "/.env.example",
+    "/database.json",
+    "/package-lock.json",
+    "/package.json",
+    "/render.yaml",
+    "/server.js",
+    "/supabase-schema.sql",
+  ];
+  const protectedPrefixes = ["/.git/", "/node_modules/", "/scripts/"];
+  const protectedExtensions = [".json", ".lock", ".log", ".md", ".sql", ".yaml", ".yml"];
+
+  const blocked =
+    lowerPathname.startsWith("/.") ||
+    protectedPaths.includes(lowerPathname) ||
+    protectedPrefixes.some((prefix) => lowerPathname.startsWith(prefix)) ||
+    protectedExtensions.some((extension) => lowerPathname.endsWith(extension));
+
+  if (blocked) {
+    res.status(404).send("Not found");
+    return;
+  }
+
+  next();
+}
+
+function safeDecodePath(pathname) {
+  try {
+    return decodeURIComponent(pathname);
+  } catch {
+    return pathname;
+  }
+}
+
 function localDevCors(req, res, next) {
+  if (process.env.NODE_ENV === "production") {
+    next();
+    return;
+  }
+
   const origin = req.get("origin");
   const isLocalDevOrigin =
     origin === "null" || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin || "");
