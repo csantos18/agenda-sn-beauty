@@ -21,6 +21,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   color: var(--ink);
   background: var(--paper);
+  overflow-x: hidden;
 }
 
 a {
@@ -744,28 +745,100 @@ dd {
 }
 
 @media (max-width: 620px) {
+  body {
+    background: var(--white);
+    padding-bottom: 64px;
+  }
+
   .topbar {
     align-items: flex-start;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .topbar > div {
+    width: 100%;
+    min-width: 0;
+    gap: 10px;
+  }
+
+  .topbar strong {
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+
+  .brand-mark {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    font-size: 0.82rem;
   }
 
   .topbar nav {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: nowrap;
     justify-content: flex-start;
-    row-gap: 8px;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    font-size: 0.88rem;
+    line-height: 1.2;
+    scrollbar-width: none;
+  }
+
+  .topbar nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .topbar nav a {
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 7px 10px;
+    background: rgba(255, 255, 255, 0.72);
   }
 
   .hero {
-    padding-top: 42px;
-    padding-bottom: 42px;
+    display: block;
+    padding: 24px 16px 30px;
   }
 
   .hero h1 {
-    font-size: clamp(2.65rem, 16vw, 4.25rem);
+    max-width: 8ch;
+    font-size: clamp(3rem, 15vw, 3.7rem);
+    line-height: 0.98;
   }
 
   .hero p {
-    font-size: 1rem;
+    max-width: 31ch;
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+
+  .hero .eyebrow {
+    max-width: 25ch;
+    font-size: 0.72rem;
+    line-height: 1.45;
+  }
+
+  .primary-action,
+  button {
+    width: 100%;
+  }
+
+  .hero .primary-action {
+    width: auto;
+    margin-top: 2px;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .hero-panel {
+    margin-top: 20px;
+    gap: 8px;
   }
 
   .hero-panel div,
@@ -773,7 +846,15 @@ dd {
   .appointment-card,
   .review-card,
   .contact-grid article {
-    padding: 16px;
+    padding: 14px;
+  }
+
+  .hero-panel strong {
+    font-size: 1rem;
+  }
+
+  .hero-panel span {
+    font-size: 0.78rem;
   }
 
   .services-grid,
@@ -798,8 +879,57 @@ dd {
     justify-items: stretch;
   }
 
+  .section,
+  .reviews-section,
+  .contact-section,
+  .mothers-section,
+  .privacy-section,
+  .workspace {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .section-heading h2,
+  .mothers-section h2 {
+    font-size: clamp(1.65rem, 9vw, 2.25rem);
+    line-height: 1.08;
+  }
+
+  .summary-line {
+    display: grid;
+    gap: 4px;
+  }
+
+  dd {
+    text-align: left;
+  }
+
   .secondary-button,
   .ghost-button {
     width: 100%;
+  }
+
+  .floating-whatsapp {
+    right: 16px;
+    bottom: 12px;
+    left: 16px;
+    width: auto;
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 0.86rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .topbar nav {
+    font-size: 0.84rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.65rem, 14vw, 3.15rem);
+  }
+
+  .hero p {
+    max-width: 29ch;
   }
 }

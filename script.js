@@ -286,7 +286,7 @@ function renderAppointments() {
     appointments = [];
     renderAdminStats([], new Date().toISOString().slice(0, 10));
     appointmentsList.innerHTML = '<div class="empty-state">Digite a senha administrativa para ver a agenda completa.</div>';
-    todayCount.textContent = "Painel protegido";
+    todayCount.textContent = "Agendamento online";
     return;
   }
 
