@@ -588,6 +588,10 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", app: "Agenda SN Beauty", storage: supabase ? "supabase" : "local-file" });
 });
 
+app.get("/admin", (req, res) => {
+  res.redirect("/#agenda");
+});
+
 app.get("/api/admin/session", (req, res) => {
   res.json({ authenticated: isValidAdminSession(req) });
 });
