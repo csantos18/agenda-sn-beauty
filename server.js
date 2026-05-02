@@ -205,7 +205,11 @@ async function readSupabaseDb() {
   return {
     ...seed,
     appointments: (appointments || []).map(fromSupabaseAppointment),
-    reviews: reviews || [],
+    reviews: (reviews || []).map((review) => ({
+      ...review,
+      name: normalizeLegacyEncoding(review.name),
+      comment: normalizeLegacyEncoding(review.comment),
+    })),
   };
 }
 
@@ -460,6 +464,29 @@ function cleanString(value, maxLength) {
 
 function phoneDigits(value) {
   return String(value || "").replace(/\D/g, "");
+}
+
+function normalizeLegacyEncoding(value) {
+  if (typeof value !== "string") return value;
+  const replacements = {
+    "Ã¡": "á",
+    "Ã ": "à",
+    "Ã¢": "â",
+    "Ã£": "ã",
+    "Ã©": "é",
+    "Ãª": "ê",
+    "Ã­": "í",
+    "Ã³": "ó",
+    "Ã´": "ô",
+    "Ãµ": "õ",
+    "Ãº": "ú",
+    "Ã§": "ç",
+    "Ã�": "Á",
+    "Ã‰": "É",
+    "Ã“": "Ó",
+    "Ã‡": "Ç",
+  };
+  return Object.entries(replacements).reduce((text, [broken, fixed]) => text.replaceAll(broken, fixed), value);
 }
 
 function normalizeAppointmentStatus(status) {

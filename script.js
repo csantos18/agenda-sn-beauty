@@ -115,7 +115,7 @@ function buildBookingWhatsAppUrl(appointment) {
     `Pagamento: ${appointment.paymentMethod}`,
     appointment.notes ? `Observações: ${appointment.notes}` : "",
     "",
-    "Pode confirmar meu horário, por favor?",
+    "Pode confirmar se esse horário está disponível, por favor?",
   ]
     .filter(Boolean)
     .join("\n");
@@ -329,7 +329,7 @@ bookingForm.addEventListener("submit", async (event) => {
       body: JSON.stringify(payload),
     });
     showBookingConfirmation({ ...payload, ...createdAppointment });
-    showMessage("Seu horário foi solicitado. Aguarde confirmação da profissional pelo WhatsApp.");
+    showMessage("Pedido enviado. Aguarde a confirmação da profissional pelo WhatsApp.");
 
     resetBookingForm();
     await loadAvailability();
@@ -370,7 +370,7 @@ reviewForm.addEventListener("submit", async (event) => {
 
 function renderLookupResults(items) {
   if (!items.length) {
-    lookupResults.innerHTML = '<div class="empty-state">Nenhum agendamento encontrado para esse telefone e data.</div>';
+    lookupResults.innerHTML = '<div class="empty-state">Nenhum pedido encontrado para esse telefone e data. Confira os dados ou fale com o salão pelo WhatsApp.</div>';
     return;
   }
 

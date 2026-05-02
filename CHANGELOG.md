@@ -9,6 +9,7 @@
 - Pagina administrativa dedicada em `/admin`, separada da pagina publica das clientes.
 - Script `npm run supabase:seed` para importar dados locais para o Supabase.
 - Consulta publica segura para cliente conferir o proprio agendamento por telefone e data.
+- Textos publicos refinados para deixar claro que o horario solicitado fica pendente ate confirmacao.
 
 ### Alterado
 
@@ -23,6 +24,7 @@
 - Cookies administrativos respeitam conexao segura atras do Render/proxy.
 - Avaliacoes publicas ganharam limite separado, campo antispam invisivel e bloqueio de duplicadas.
 - Erros internos em rotas assincronas retornam resposta controlada.
+- Textos antigos com acentuacao quebrada vindos do banco sao normalizados antes de aparecerem para a cliente.
 
 Histórico de mudanças relevantes do Agenda SN Beauty.
 

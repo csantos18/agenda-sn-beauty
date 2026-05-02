@@ -134,18 +134,18 @@
             </label>
           </div>
 
-          <button type="submit">Confirmar agendamento</button>
+          <button type="submit">Solicitar horário</button>
         </form>
 
         <aside class="summary-panel" aria-live="polite">
-          <p class="eyebrow">Confirmação</p>
-          <h2>Resumo</h2>
+          <p class="eyebrow">Resumo antes de enviar</p>
+          <h2>Seu pedido</h2>
           <dl id="bookingSummary"></dl>
           <div class="confirmation-box" id="confirmationBox" hidden>
-            <strong>Seu horário foi solicitado.</strong>
+            <strong>Pedido enviado com sucesso.</strong>
             <div class="confirmation-details" id="confirmationDetails"></div>
-            <p>Aguarde a confirmação da profissional pelo WhatsApp. Para agilizar, envie o resumo do pedido para o salão.</p>
-            <a class="whatsapp-button" id="bookingWhatsAppLink" href="https://wa.me/5561981561421" target="_blank" rel="noopener">Enviar no WhatsApp</a>
+            <p>O horário fica como pendente até a confirmação da profissional. Envie o resumo pelo WhatsApp para agilizar o retorno.</p>
+            <a class="whatsapp-button" id="bookingWhatsAppLink" href="https://wa.me/5561981561421" target="_blank" rel="noopener">Enviar resumo no WhatsApp</a>
           </div>
         </aside>
       </section>
@@ -155,7 +155,7 @@
           <p class="eyebrow">Minha marcação</p>
           <h2>Consultar agendamento</h2>
           <p class="section-note">
-            A cliente pode conferir o status do horário usando o telefone informado no agendamento e a data escolhida.
+            Confira se o pedido está pendente, confirmado, concluído ou cancelado usando o telefone informado no agendamento.
           </p>
         </div>
         <form class="lookup-form" id="lookupForm">
@@ -183,8 +183,8 @@
         <div class="policy-grid">
           <article>
             <span>Confirmação</span>
-            <strong>Aguarde retorno</strong>
-            <p>Depois de agendar, a cliente pode chamar no WhatsApp para confirmar os dados.</p>
+            <strong>Pedido pendente</strong>
+            <p>Depois de solicitar, aguarde a confirmação da profissional pelo WhatsApp.</p>
           </article>
           <article>
             <span>Atrasos</span>
@@ -194,7 +194,7 @@
           <article>
             <span>Horários</span>
             <strong>Bloqueio automático</strong>
-            <p>Horários já agendados deixam de aparecer para novas clientes.</p>
+            <p>Horários ocupados pelo tempo total do serviço deixam de aparecer para novas clientes.</p>
           </article>
         </div>
       </section>
@@ -257,7 +257,7 @@
             </label>
             <label>
               Comentário
-              <textarea id="reviewComment" required placeholder="Conte o que achou do agendamento"></textarea>
+              <textarea id="reviewComment" required placeholder="Conte se o agendamento ficou fácil de usar"></textarea>
             </label>
             <button type="submit">Enviar avaliação</button>
           </form>
