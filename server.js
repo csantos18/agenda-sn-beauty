@@ -25,6 +25,7 @@ const supabase =
       })
     : null;
 const PUBLIC_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 25 });
+const PUBLIC_LOOKUP_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
 const REVIEW_WRITE_LIMIT = createRateLimit({ windowMs: 60 * 60 * 1000, max: 6 });
 const ADMIN_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 80 });
 const ADMIN_LOGIN_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 12 });
@@ -457,6 +458,10 @@ function cleanString(value, maxLength) {
     .slice(0, maxLength);
 }
 
+function phoneDigits(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
 function normalizeAppointmentStatus(status) {
   return status === "agendado" ? "pendente" : status;
 }
@@ -470,6 +475,24 @@ function publicAppointment(appointment, services) {
     id: appointment.id,
     serviceId: appointment.serviceId,
     service: services.find((service) => service.id === appointment.serviceId),
+    professional: appointment.professional,
+    date: appointment.date,
+    time: appointment.time,
+    status: normalizeAppointmentStatus(appointment.status),
+  };
+}
+
+function publicClientAppointment(appointment, services) {
+  const service = services.find((item) => item.id === Number(appointment.serviceId));
+  return {
+    id: appointment.id,
+    service: service
+      ? {
+          name: service.name,
+          price: service.price,
+          duration: service.duration,
+        }
+      : null,
     professional: appointment.professional,
     date: appointment.date,
     time: appointment.time,
@@ -598,8 +621,8 @@ function validateAppointment(payload, db, currentId) {
     return "Horário indisponível para a duração do serviço dentro do expediente.";
   }
 
-  const phoneDigits = String(payload.phone || "").replace(/\D/g, "");
-  if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+  const digits = phoneDigits(payload.phone);
+  if (digits.length < 10 || digits.length > 11) {
     return "Informe um telefone válido com DDD.";
   }
 
@@ -701,6 +724,30 @@ app.get("/api/availability", async (req, res) => {
     opens: scheduleForDate(date).opens,
     closes: scheduleForDate(date).closes,
   });
+});
+
+app.get("/api/client/appointments", PUBLIC_LOOKUP_LIMIT, async (req, res) => {
+  const phone = cleanString(req.query.phone, 30);
+  const date = cleanString(req.query.date, 10);
+  const digits = phoneDigits(phone);
+
+  if (digits.length < 10 || digits.length > 11) {
+    res.status(400).json({ error: "Informe um telefone válido com DDD." });
+    return;
+  }
+
+  if (!isISODate(date)) {
+    res.status(400).json({ error: "Informe uma data válida." });
+    return;
+  }
+
+  const db = await readDb();
+  const matches = db.appointments
+    .filter((appointment) => appointment.date === date && phoneDigits(appointment.phone) === digits)
+    .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))
+    .map((appointment) => publicClientAppointment(appointment, db.services));
+
+  res.json({ appointments: matches });
 });
 
 app.get("/api/appointments", requireAdmin, async (req, res) => {

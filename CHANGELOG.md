@@ -8,6 +8,7 @@
 - Teste automatizado para impedir conflito parcial entre atendimentos.
 - Pagina administrativa dedicada em `/admin`, separada da pagina publica das clientes.
 - Script `npm run supabase:seed` para importar dados locais para o Supabase.
+- Consulta publica segura para cliente conferir o proprio agendamento por telefone e data.
 
 ### Alterado
 

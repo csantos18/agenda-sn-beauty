@@ -19,6 +19,7 @@ Organizar os atendimentos do salão de forma simples para a cliente e segura par
 - Avaliações das clientes com média de notas.
 - Confirmação do agendamento por WhatsApp com mensagem pronta.
 - Confirmação com protocolo, status e resumo do horário solicitado.
+- Consulta pública segura do próprio agendamento por telefone e data.
 - Botão fixo de WhatsApp para contato rápido.
 - Notificação automática opcional para a dona do salão via webhook.
 - Seção de orientações para confirmação, atraso e bloqueio de horários.
@@ -133,6 +134,7 @@ Depois do deploy, confira `/api/health`. O campo `storage` deve mostrar `supabas
 - `GET /api/professionals`
 - `GET /api/payment-methods`
 - `GET /api/availability?date=AAAA-MM-DD&professional=Jacinta%20Santos`
+- `GET /api/client/appointments?phone=...&date=AAAA-MM-DD`
 - `GET /api/admin/session`
 - `POST /api/admin/login`
 - `POST /api/admin/logout`

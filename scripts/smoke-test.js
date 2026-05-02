@@ -27,6 +27,7 @@ async function main() {
   await expectDuplicateBlocked(service.id);
   await expectOverlapBlocked(service.id);
   await expectTimeUnavailable(service.id);
+  await expectClientLookupFindsAppointment(appointment.id);
 
   if (ADMIN_PIN) {
     const cookie = await loginAdmin();
@@ -93,6 +94,15 @@ async function expectTimeUnavailable(serviceId) {
   const overlapUnavailable = Array.isArray(data.times) && !data.times.includes(OVERLAP_TIME);
   record("booked time unavailable", response.ok && bookedUnavailable, `status=${response.status} contains=${!bookedUnavailable}`);
   record("overlap time unavailable", response.ok && overlapUnavailable, `status=${response.status} contains=${!overlapUnavailable}`);
+}
+
+async function expectClientLookupFindsAppointment(id) {
+  const params = new URLSearchParams({ date: TEST_DATE, phone: "(61) 99999-0000" });
+  const response = await request(`/api/client/appointments?${params.toString()}`);
+  const data = await response.json();
+  const found = Array.isArray(data.appointments) && data.appointments.some((appointment) => appointment.id === id);
+  const exposesPrivateFields = JSON.stringify(data).includes("99999-0000") || JSON.stringify(data).includes("Teste Smoke");
+  record("client lookup finds public appointment", response.ok && found && !exposesPrivateFields, `status=${response.status} found=${found} private=${exposesPrivateFields}`);
 }
 
 async function loginAdmin() {

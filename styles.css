@@ -349,6 +349,48 @@ button:hover {
   background: linear-gradient(180deg, #fff9fc, #fff3f8);
 }
 
+.lookup-section {
+  background: #ffffff;
+}
+
+.lookup-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.45fr) auto;
+  gap: 12px;
+  align-items: end;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--white);
+  box-shadow: 0 14px 38px rgba(93, 52, 67, 0.08);
+}
+
+.lookup-form label {
+  margin: 0;
+}
+
+.lookup-results {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.lookup-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--white);
+}
+
+.lookup-card h3 {
+  margin: 10px 0 6px;
+}
+
+.lookup-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
 .booking-form,
 .summary-panel {
   padding: clamp(18px, 4vw, 28px);
@@ -1049,8 +1091,13 @@ dd {
   .privacy-grid,
   .admin-stats,
   .contact-grid,
-  .form-row {
+  .form-row,
+  .lookup-form {
     grid-template-columns: 1fr;
+  }
+
+  .lookup-form {
+    padding: 14px;
   }
 
   .service-card {

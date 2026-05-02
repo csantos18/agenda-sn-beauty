@@ -14,6 +14,7 @@
       </div>
       <nav aria-label="Navegação principal">
         <a href="#agendar">Agendar</a>
+        <a href="#consultar">Consultar</a>
         <a href="#contato">Contato</a>
         <a href="#maes">Dia das Mães</a>
         <a href="#avaliacoes">Avaliações</a>
@@ -147,6 +148,28 @@
             <a class="whatsapp-button" id="bookingWhatsAppLink" href="https://wa.me/5561981561421" target="_blank" rel="noopener">Enviar no WhatsApp</a>
           </div>
         </aside>
+      </section>
+
+      <section class="section lookup-section" id="consultar">
+        <div class="section-heading">
+          <p class="eyebrow">Minha marcação</p>
+          <h2>Consultar agendamento</h2>
+          <p class="section-note">
+            A cliente pode conferir o status do horário usando o telefone informado no agendamento e a data escolhida.
+          </p>
+        </div>
+        <form class="lookup-form" id="lookupForm">
+          <label>
+            Telefone usado no agendamento
+            <input id="lookupPhone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="(00) 00000-0000" />
+          </label>
+          <label>
+            Data do atendimento
+            <input id="lookupDate" type="date" required />
+          </label>
+          <button type="submit">Consultar</button>
+        </form>
+        <div class="lookup-results" id="lookupResults" aria-live="polite"></div>
       </section>
 
       <section class="section policy-section" id="orientacoes">

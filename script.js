@@ -1,11 +1,8 @@
 ﻿let services = [];
 let professionals = [];
 let paymentMethods = [];
-let appointments = [];
 let reviews = [];
 let availableTimes = [];
-let editingAppointmentId = null;
-let adminAuthenticated = false;
 
 const servicesGrid = document.querySelector("#servicesGrid");
 const serviceSelect = document.querySelector("#serviceSelect");
@@ -17,17 +14,7 @@ const paymentSelect = document.querySelector("#paymentSelect");
 const notesInput = document.querySelector("#notesInput");
 const bookingSummary = document.querySelector("#bookingSummary");
 const bookingForm = document.querySelector("#bookingForm");
-const adminSection = document.querySelector("#agenda");
-const appointmentsList = document.querySelector("#appointmentsList");
 const todayCount = document.querySelector("#todayCount");
-const adminForm = document.querySelector("#adminForm");
-const adminPinInput = document.querySelector("#adminPinInput");
-const adminDateInput = document.querySelector("#adminDateInput");
-const adminStatusFilter = document.querySelector("#adminStatusFilter");
-const adminStats = document.querySelector("#adminStats");
-const adminLockButton = document.querySelector("#adminLockButton");
-const adminExportButton = document.querySelector("#adminExportButton");
-const adminStatus = document.querySelector("#adminStatus");
 const reviewForm = document.querySelector("#reviewForm");
 const reviewsList = document.querySelector("#reviewsList");
 const ratingScore = document.querySelector("#ratingScore");
@@ -35,6 +22,10 @@ const ratingCount = document.querySelector("#ratingCount");
 const confirmationBox = document.querySelector("#confirmationBox");
 const bookingWhatsAppLink = document.querySelector("#bookingWhatsAppLink");
 const confirmationDetails = document.querySelector("#confirmationDetails");
+const lookupForm = document.querySelector("#lookupForm");
+const lookupPhone = document.querySelector("#lookupPhone");
+const lookupDate = document.querySelector("#lookupDate");
+const lookupResults = document.querySelector("#lookupResults");
 const LOCAL_API_ORIGIN = "http://localhost:5175";
 const SALON_WHATSAPP = "5561981561421";
 
@@ -132,24 +123,6 @@ function buildBookingWhatsAppUrl(appointment) {
   return `https://wa.me/${SALON_WHATSAPP}?text=${encodeURIComponent(message)}`;
 }
 
-function buildClientWhatsAppUrl(appointment, mode = "contact") {
-  const digits = String(appointment.phone || "").replace(/\D/g, "");
-  const serviceName = appointment.service?.name || "seu atendimento";
-  const messages = {
-    confirm: [
-      `Olá, ${appointment.client}!`,
-      `Seu horário no Sarah Neves Beauty Studio foi confirmado para ${formatDate(appointment.date)} às ${appointment.time}.`,
-      `Serviço: ${serviceName}.`,
-      "Qualquer imprevisto, me avise por aqui.",
-    ],
-    contact: [
-      `Olá, ${appointment.client}!`,
-      `Estou entrando em contato sobre seu agendamento de ${serviceName} no dia ${formatDate(appointment.date)} às ${appointment.time}.`,
-    ],
-  };
-  return `https://wa.me/55${digits}?text=${encodeURIComponent((messages[mode] || messages.contact).join("\n"))}`;
-}
-
 function showBookingConfirmation(appointment) {
   if (!confirmationBox || !bookingWhatsAppLink) return;
 
@@ -173,20 +146,6 @@ function showBookingConfirmation(appointment) {
 function hideBookingConfirmation() {
   if (!confirmationBox) return;
   confirmationBox.hidden = true;
-}
-
-function updateAdminStatus(message) {
-  if (!adminStatus || !adminPinInput) return;
-  syncAdminVisibility();
-  adminStatus.textContent =
-    message || (adminAuthenticated ? "Painel administrativo liberado neste navegador." : "Painel protegido. Apenas a profissional deve acessar a agenda completa.");
-  adminPinInput.value = adminAuthenticated ? "********" : "";
-}
-
-function syncAdminVisibility() {
-  if (!adminSection) return;
-  const openedByAdminLink = window.location.hash === "#agenda" || window.location.search.includes("admin=1");
-  adminSection.hidden = !adminAuthenticated && !openedByAdminLink;
 }
 
 function renderServices() {
@@ -240,20 +199,8 @@ async function loadAvailability() {
   if (service) {
     params.set("serviceId", service.id);
   }
-  if (editingAppointmentId) {
-    params.set("excludeId", editingAppointmentId);
-  }
   const availability = await api(`/api/availability?${params.toString()}`);
   availableTimes = availability.times;
-  const editingAppointment = appointments.find((appointment) => appointment.id === editingAppointmentId);
-  if (
-    editingAppointment &&
-    editingAppointment.date === dateInput.value &&
-    editingAppointment.professional === professionalSelect.value &&
-    !availableTimes.includes(editingAppointment.time)
-  ) {
-    availableTimes = [...availableTimes, editingAppointment.time].sort();
-  }
   renderTimes();
 }
 
@@ -324,108 +271,6 @@ function renderSummary() {
     .join("");
 }
 
-function appointmentValue(appointment) {
-  return appointment.service?.price || 0;
-}
-
-function renderAdminStats(items, selectedDate) {
-  if (!adminStats) return;
-
-  if (!adminAuthenticated) {
-    adminStats.innerHTML = "";
-    return;
-  }
-
-  const active = items.filter((appointment) => normalizeStatus(appointment.status) !== "cancelado");
-  const pending = items.filter((appointment) => normalizeStatus(appointment.status) === "pendente");
-  const confirmed = items.filter((appointment) => normalizeStatus(appointment.status) === "confirmado");
-  const completed = items.filter((appointment) => appointment.status === "concluido");
-  const canceled = items.filter((appointment) => appointment.status === "cancelado");
-  const expectedRevenue = active.reduce((sum, appointment) => sum + appointmentValue(appointment), 0);
-  const completedRevenue = completed.reduce((sum, appointment) => sum + appointmentValue(appointment), 0);
-
-  adminStats.innerHTML = [
-    ["Data", formatDate(selectedDate)],
-    ["Ativos", String(active.length)],
-    ["Pendentes", String(pending.length)],
-    ["Confirmados", String(confirmed.length)],
-    ["Concluídos", String(completed.length)],
-    ["Cancelados", String(canceled.length)],
-    ["Previsto", money(expectedRevenue)],
-    ["Realizado", money(completedRevenue)],
-  ]
-    .map(
-      ([label, value]) => `
-        <article class="stat-card">
-          <span>${escapeHtml(label)}</span>
-          <strong>${escapeHtml(value)}</strong>
-        </article>
-      `,
-    )
-    .join("");
-}
-
-function renderAppointments() {
-  if (!appointmentsList) return;
-  if (!adminAuthenticated) {
-    appointments = [];
-    renderAdminStats([], new Date().toISOString().slice(0, 10));
-    appointmentsList.innerHTML = '<div class="empty-state">Digite a senha administrativa para ver a agenda completa.</div>';
-    todayCount.textContent = "Agendamento online";
-    return;
-  }
-
-  const selectedAdminDate = adminDateInput.value || new Date().toISOString().slice(0, 10);
-  const selectedStatus = adminStatusFilter?.value || "todos";
-  const visibleAppointments = appointments.filter(
-    (appointment) =>
-      appointment.date === selectedAdminDate &&
-      (selectedStatus === "todos" || normalizeStatus(appointment.status) === selectedStatus),
-  );
-  const sorted = [...visibleAppointments].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
-  renderAdminStats(sorted, selectedAdminDate);
-  if (!sorted.length) {
-    appointmentsList.innerHTML = `<div class="empty-state">Nenhum agendamento registrado para ${formatDate(selectedAdminDate)}.</div>`;
-    todayCount.textContent = "0 horários";
-    return;
-  }
-
-  appointmentsList.innerHTML = sorted
-    .map(
-      (appointment) => `
-        <article class="appointment-card">
-          <div class="appointment-time">${escapeHtml(appointment.time)}</div>
-          <div>
-            <h3>${escapeHtml(appointment.client)}</h3>
-            <p>${escapeHtml(appointment.service.name)} com ${escapeHtml(appointment.professional)} em ${formatDate(appointment.date)}</p>
-            <p>${escapeHtml(appointment.phone)} | ${escapeHtml(appointment.paymentMethod)} | ${money(appointment.service.price)} | ${appointment.service.duration} min</p>
-            ${appointment.notes ? `<p class="appointment-notes"><strong>Obs.:</strong> ${escapeHtml(appointment.notes)}</p>` : ""}
-          </div>
-          <div class="appointment-actions">
-            <span class="status ${escapeHtml(normalizeStatus(appointment.status))}">${escapeHtml(statusLabel(appointment.status))}</span>
-            ${
-              normalizeStatus(appointment.status) === "pendente"
-                ? `<button class="secondary-button" type="button" data-action="confirm" data-id="${appointment.id}">Confirmar</button>`
-                : ""
-            }
-            <a class="secondary-button admin-whatsapp" href="${buildClientWhatsAppUrl(appointment, "confirm")}" target="_blank" rel="noopener">Confirmar WhatsApp</a>
-            <a class="ghost-button admin-whatsapp" href="${buildClientWhatsAppUrl(appointment)}" target="_blank" rel="noopener">Chamar cliente</a>
-            ${
-              !["cancelado", "concluido"].includes(normalizeStatus(appointment.status))
-                ? `<button class="secondary-button" type="button" data-action="complete" data-id="${appointment.id}">Concluir</button>`
-                : ""
-            }
-            <button class="secondary-button" type="button" data-action="reschedule" data-id="${appointment.id}">Remarcar</button>
-            <button class="ghost-button" type="button" data-action="cancel" data-id="${appointment.id}">Desmarcar</button>
-          </div>
-        </article>
-      `,
-    )
-    .join("");
-
-  todayCount.textContent = `${sorted.length} horários`;
-}
-
 function renderReviews(average) {
   reviewsList.innerHTML = reviews
     .map(
@@ -447,19 +292,10 @@ function setInitialDate() {
   const today = new Date().toISOString().slice(0, 10);
   dateInput.value = today;
   dateInput.min = today;
-  if (adminDateInput) {
-    adminDateInput.value = today;
+  if (lookupDate) {
+    lookupDate.value = today;
+    lookupDate.min = today;
   }
-}
-
-async function loadAppointments() {
-  if (!adminAuthenticated) {
-    renderAppointments();
-    return;
-  }
-
-  appointments = await api("/api/appointments", { admin: true });
-  renderAppointments();
 }
 
 async function loadReviews() {
@@ -469,7 +305,6 @@ async function loadReviews() {
 }
 
 function resetBookingForm() {
-  editingAppointmentId = null;
   bookingForm.reset();
   setInitialDate();
 }
@@ -489,151 +324,27 @@ bookingForm.addEventListener("submit", async (event) => {
   };
 
   try {
-    if (editingAppointmentId) {
-      const updatedAppointment = await api(`/api/appointments/${editingAppointmentId}/reschedule`, {
-        method: "PATCH",
-        admin: true,
-        body: JSON.stringify(payload),
-      });
-      showBookingConfirmation(updatedAppointment);
-      showMessage("Agendamento remarcado com sucesso.");
-    } else {
-      const createdAppointment = await api("/api/appointments", {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      showBookingConfirmation({ ...payload, ...createdAppointment });
-      showMessage("Seu horário foi solicitado. Aguarde confirmação da profissional pelo WhatsApp.");
-    }
+    const createdAppointment = await api("/api/appointments", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    showBookingConfirmation({ ...payload, ...createdAppointment });
+    showMessage("Seu horário foi solicitado. Aguarde confirmação da profissional pelo WhatsApp.");
 
     resetBookingForm();
     await loadAvailability();
-    if (adminAuthenticated) {
-      await loadAppointments();
-    }
     renderSummary();
   } catch (error) {
     showMessage(error.message);
   }
 });
 
-if (appointmentsList) appointmentsList.addEventListener("click", async (event) => {
-  const button = event.target.closest("button[data-action]");
-  if (!button) return;
-
-  const id = Number(button.dataset.id);
-  const appointment = appointments.find((item) => item.id === id);
-  if (!appointment) return;
-
-  if (button.dataset.action === "cancel") {
-    try {
-      await api(`/api/appointments/${id}/cancel`, { method: "PATCH", admin: true });
-      showMessage("Agendamento desmarcado com sucesso.");
-      await loadAppointments();
-      await loadAvailability();
-      renderSummary();
-    } catch (error) {
-      showMessage(error.message);
-    }
-    return;
-  }
-
-  if (button.dataset.action === "confirm") {
-    try {
-      await api(`/api/appointments/${id}/confirm`, { method: "PATCH", admin: true });
-      showMessage("Agendamento confirmado no painel.");
-      await loadAppointments();
-      await loadAvailability();
-      renderSummary();
-    } catch (error) {
-      showMessage(error.message);
-    }
-    return;
-  }
-
-  if (button.dataset.action === "complete") {
-    try {
-      await api(`/api/appointments/${id}/complete`, { method: "PATCH", admin: true });
-      showMessage("Agendamento marcado como concluído.");
-      await loadAppointments();
-      await loadAvailability();
-      renderSummary();
-    } catch (error) {
-      showMessage(error.message);
-    }
-    return;
-  }
-
-  editingAppointmentId = id;
-  document.querySelector("#clientName").value = appointment.client;
-  document.querySelector("#clientPhone").value = appointment.phone;
-  notesInput.value = appointment.notes || "";
-  serviceSelect.value = appointment.serviceId;
-  professionalSelect.value = appointment.professional;
-  paymentSelect.value = appointment.paymentMethod;
-  dateInput.value = appointment.date;
-  await loadAvailability();
-  timeSelect.value = appointment.time;
-  renderSummary();
-  document.querySelector("#agendar").scrollIntoView({ behavior: "smooth" });
-});
-
 document.querySelector("#clientPhone").addEventListener("input", (event) => {
   event.target.value = formatPhone(event.target.value);
 });
 
-if (adminForm) adminForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const password = adminPinInput.value.trim();
-
-  if (!password || password === "********") {
-    updateAdminStatus("Digite a senha administrativa para abrir o painel.");
-    return;
-  }
-
-  try {
-    await api("/api/admin/login", {
-      method: "POST",
-      admin: true,
-      body: JSON.stringify({ password }),
-    });
-    adminAuthenticated = true;
-    await loadAppointments();
-    updateAdminStatus();
-  } catch (error) {
-    adminAuthenticated = false;
-    appointments = [];
-    renderAppointments();
-    const message =
-      error.message === "Senha administrativa inválida."
-        ? "Senha administrativa inválida. Confira a senha do salão."
-        : error.message;
-    updateAdminStatus(message);
-  }
-});
-
-if (adminLockButton) adminLockButton.addEventListener("click", async () => {
-  adminAuthenticated = false;
-  editingAppointmentId = null;
-  appointments = [];
-  try {
-    await api("/api/admin/logout", { method: "POST", admin: true });
-  } catch {
-    // The UI should still lock even if the logout request cannot complete.
-  }
-  renderAppointments();
-  updateAdminStatus("Painel bloqueado neste navegador.");
-});
-
-if (adminStatusFilter) adminStatusFilter.addEventListener("change", renderAppointments);
-
-if (adminExportButton) adminExportButton.addEventListener("click", () => {
-  if (!adminAuthenticated) {
-    updateAdminStatus("Abra o painel antes de exportar a agenda.");
-    return;
-  }
-
-  window.location.href = apiUrl("/api/admin/export");
+lookupPhone.addEventListener("input", (event) => {
+  event.target.value = formatPhone(event.target.value);
 });
 
 reviewForm.addEventListener("submit", async (event) => {
@@ -657,6 +368,43 @@ reviewForm.addEventListener("submit", async (event) => {
   }
 });
 
+function renderLookupResults(items) {
+  if (!items.length) {
+    lookupResults.innerHTML = '<div class="empty-state">Nenhum agendamento encontrado para esse telefone e data.</div>';
+    return;
+  }
+
+  lookupResults.innerHTML = items
+    .map(
+      (appointment) => `
+        <article class="lookup-card">
+          <div>
+            <span class="status ${escapeHtml(normalizeStatus(appointment.status))}">${escapeHtml(statusLabel(appointment.status))}</span>
+            <h3>${escapeHtml(appointment.service?.name || "Serviço")}</h3>
+            <p>${formatDate(appointment.date)} às ${escapeHtml(appointment.time)} com ${escapeHtml(appointment.professional)}</p>
+            <p>${appointment.service ? `${money(appointment.service.price)} | ${appointment.service.duration} min` : ""}</p>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+lookupForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  try {
+    const params = new URLSearchParams({
+      phone: lookupPhone.value.trim(),
+      date: lookupDate.value,
+    });
+    const data = await api(`/api/client/appointments?${params.toString()}`);
+    renderLookupResults(data.appointments || []);
+  } catch (error) {
+    lookupResults.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+  }
+});
+
 [serviceSelect, professionalSelect, paymentSelect, dateInput, timeSelect, notesInput].forEach((element) => {
   element.addEventListener("change", async () => {
     hideBookingConfirmation();
@@ -669,9 +417,6 @@ reviewForm.addEventListener("submit", async (event) => {
     renderSummary();
   });
 });
-
-if (adminDateInput) adminDateInput.addEventListener("change", renderAppointments);
-window.addEventListener("hashchange", syncAdminVisibility);
 
 async function init() {
   try {
