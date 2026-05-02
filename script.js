@@ -1,4 +1,4 @@
-let services = [];
+﻿let services = [];
 let professionals = [];
 let paymentMethods = [];
 let appointments = [];
@@ -653,4 +653,5 @@ async function init() {
 }
 
 init();
+
 

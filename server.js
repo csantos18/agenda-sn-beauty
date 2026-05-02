@@ -1,4 +1,4 @@
-const express = require("express");
+﻿const express = require("express");
 const crypto = require("crypto");
 const fsSync = require("fs");
 const fs = require("fs/promises");
@@ -756,3 +756,4 @@ app.post("/api/reviews", PUBLIC_WRITE_LIMIT, async (req, res) => {
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Agenda SN Beauty rodando em http://localhost:${PORT}`);
 });
+

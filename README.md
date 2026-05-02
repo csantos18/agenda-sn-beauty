@@ -1,4 +1,4 @@
-# Agenda SN Beauty
+﻿# Agenda SN Beauty
 
 Aplicativo de agendamento criado para o **Sarah Neves Beauty Studio**, com front-end responsivo, back-end em Node.js/Express e persistência opcional em Supabase.
 
@@ -37,12 +37,12 @@ http://localhost:5175
 
 ## Teste de entrega
 
-## AtualizaÃ§Ãµes operacionais
+## Atualizações operacionais
 
 - O painel administrativo usa status `pendente`, `confirmado`, `cancelado` e `concluido`.
 - A profissional pode confirmar, concluir, desmarcar, remarcar e chamar a cliente pelo WhatsApp.
 - A agenda pode ser filtrada por status e exportada em CSV.
-- A rota `/api/health` informa se o app estÃ¡ usando Supabase ou arquivo local.
+- A rota `/api/health` informa se o app está usando Supabase ou arquivo local.
 
 Com o servidor rodando, execute:
 
@@ -137,3 +137,4 @@ Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas 
 - `database.json`: dados iniciais e fallback local.
 - `supabase-schema.sql`: tabelas necessárias no Supabase.
 - `render.yaml`: configuração base do Render no plano Free.
+
