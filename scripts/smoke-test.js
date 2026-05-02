@@ -1,0 +1,189 @@
+const fs = require("fs");
+const path = require("path");
+
+loadLocalEnv();
+
+const BASE_URL = (process.env.BASE_URL || "http://localhost:5175").replace(/\/$/, "");
+const ADMIN_PIN = cleanEnvValue(process.env.ADMIN_PIN);
+const TEST_DATE = process.env.SMOKE_TEST_DATE || tomorrowISO();
+const TEST_TIME = process.env.SMOKE_TEST_TIME || "08:00";
+const PROFESSIONAL = process.env.SMOKE_TEST_PROFESSIONAL || "Jacinta Santos";
+
+const results = [];
+
+async function main() {
+  await checkGet("home", "/");
+  await checkGet("health", "/api/health");
+  const services = await checkJson("services", "/api/services");
+  await checkJson("professionals", "/api/professionals");
+  await checkJson("payment methods", "/api/payment-methods");
+  await checkJson("reviews", "/api/reviews");
+
+  const service = Array.isArray(services) ? services[0] : null;
+  assert("service fixture available", Boolean(service?.id), "first service must exist");
+
+  const appointment = await createAppointment(service.id);
+  await expectDuplicateBlocked(service.id);
+  await expectTimeUnavailable();
+
+  if (ADMIN_PIN) {
+    const cookie = await loginAdmin();
+    await expectAdminSeesAppointment(cookie, appointment.id);
+    await cancelAppointment(cookie, appointment.id);
+    await cleanupLocalAppointment(cookie, appointment.id);
+  } else {
+    record("admin flow skipped", true, "ADMIN_PIN not configured for smoke test");
+  }
+
+  printResults();
+
+  if (results.some((item) => !item.ok)) {
+    process.exitCode = 1;
+  }
+}
+
+async function checkGet(name, route) {
+  const response = await request(route);
+  record(name, response.ok, `status=${response.status}`);
+  return response;
+}
+
+async function checkJson(name, route) {
+  const response = await request(route);
+  const data = await response.json();
+  record(name, response.ok, `status=${response.status}`);
+  return data;
+}
+
+async function createAppointment(serviceId) {
+  const response = await request("/api/appointments", {
+    method: "POST",
+    body: JSON.stringify(testPayload(serviceId)),
+  });
+  const data = await response.json();
+  record("create appointment", response.status === 201 && Boolean(data.id), `status=${response.status} id=${data.id || ""}`);
+  return data;
+}
+
+async function expectDuplicateBlocked(serviceId) {
+  const response = await request("/api/appointments", {
+    method: "POST",
+    body: JSON.stringify(testPayload(serviceId)),
+  });
+  record("duplicate appointment blocked", response.status === 409, `status=${response.status}`);
+}
+
+async function expectTimeUnavailable() {
+  const params = new URLSearchParams({ date: TEST_DATE, professional: PROFESSIONAL });
+  const response = await request(`/api/availability?${params.toString()}`);
+  const data = await response.json();
+  const unavailable = Array.isArray(data.times) && !data.times.includes(TEST_TIME);
+  record("booked time unavailable", response.ok && unavailable, `status=${response.status} contains=${!unavailable}`);
+}
+
+async function loginAdmin() {
+  const response = await request("/api/admin/login", {
+    method: "POST",
+    body: JSON.stringify({ password: ADMIN_PIN }),
+  });
+  const cookie = response.headers.get("set-cookie") || "";
+  record("admin login", response.ok && cookie.includes("sn_admin_session="), `status=${response.status}`);
+  return cookie;
+}
+
+async function expectAdminSeesAppointment(cookie, id) {
+  const response = await request("/api/appointments", { headers: { Cookie: cookie } });
+  const data = await response.json();
+  const found = Array.isArray(data) && data.some((appointment) => appointment.id === id);
+  record("admin sees appointment", response.ok && found, `status=${response.status} found=${found}`);
+}
+
+async function cancelAppointment(cookie, id) {
+  const response = await request(`/api/appointments/${id}/cancel`, {
+    method: "PATCH",
+    headers: { Cookie: cookie },
+  });
+  const data = await response.json();
+  record("admin cancels test appointment", response.ok && data.status === "cancelado", `status=${response.status}`);
+}
+
+async function cleanupLocalAppointment(cookie, id) {
+  if (BASE_URL !== "http://localhost:5175" && BASE_URL !== "http://127.0.0.1:5175") {
+    record("local cleanup skipped", true, "published smoke test keeps cancelled audit record");
+    return;
+  }
+
+  const response = await request(`/api/appointments/${id}`, {
+    method: "DELETE",
+    headers: { Cookie: cookie },
+  });
+  record("local cleanup removed test appointment", response.status === 204, `status=${response.status}`);
+}
+
+async function request(route, options = {}) {
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {}),
+  };
+  return fetch(`${BASE_URL}${route}`, { ...options, headers });
+}
+
+function testPayload(serviceId) {
+  return {
+    client: `Teste Smoke ${Date.now()}`,
+    phone: "(61) 99999-0000",
+    serviceId,
+    professional: PROFESSIONAL,
+    paymentMethod: "Pix",
+    notes: "Teste automatizado de entrega",
+    date: TEST_DATE,
+    time: TEST_TIME,
+  };
+}
+
+function assert(name, ok, detail) {
+  record(name, ok, detail);
+  if (!ok) {
+    printResults();
+    process.exit(1);
+  }
+}
+
+function record(name, ok, detail) {
+  results.push({ name, ok, detail });
+}
+
+function printResults() {
+  console.table(results);
+}
+
+function tomorrowISO() {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function loadLocalEnv() {
+  const envPath = path.join(__dirname, "..", ".env");
+  if (!fs.existsSync(envPath)) return;
+
+  for (const line of fs.readFileSync(envPath, "utf8").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
+    const separatorIndex = trimmed.indexOf("=");
+    const key = trimmed.slice(0, separatorIndex).trim();
+    const value = trimmed.slice(separatorIndex + 1).trim().replace(/^["']|["']$/g, "");
+    if (key && process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+}
+
+function cleanEnvValue(value) {
+  return typeof value === "string" ? value.trim() : value;
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

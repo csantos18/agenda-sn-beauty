@@ -35,6 +35,22 @@ Depois acesse:
 http://localhost:5175
 ```
 
+## Teste de entrega
+
+Com o servidor rodando, execute:
+
+```bash
+npm run smoke
+```
+
+Para testar o site publicado:
+
+```bash
+BASE_URL=https://agenda-sn-beauty.onrender.com npm run smoke
+```
+
+O teste valida abertura do app, APIs principais, cria um agendamento temporário, confirma bloqueio de horário duplicado, acessa o painel com `ADMIN_PIN` e cancela o agendamento de teste.
+
 ## Persistência
 
 O app funciona de duas formas:

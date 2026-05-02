@@ -597,6 +597,26 @@ app.patch("/api/appointments/:id/cancel", requireAdmin, ADMIN_WRITE_LIMIT, async
   res.json(enrichAppointment(appointment, db.services));
 });
 
+app.delete("/api/appointments/:id", requireAdmin, ADMIN_WRITE_LIMIT, async (req, res) => {
+  if (process.env.NODE_ENV === "production") {
+    res.status(403).json({ error: "Exclusão definitiva indisponível em produção. Cancele o agendamento." });
+    return;
+  }
+
+  const db = await readDb();
+  const id = Number(req.params.id);
+  const index = db.appointments.findIndex((item) => item.id === id);
+
+  if (index === -1) {
+    res.status(404).json({ error: "Agendamento não encontrado." });
+    return;
+  }
+
+  db.appointments.splice(index, 1);
+  await writeDb(db);
+  res.status(204).end();
+});
+
 app.patch("/api/appointments/:id/complete", requireAdmin, ADMIN_WRITE_LIMIT, async (req, res) => {
   const db = await readDb();
   const id = Number(req.params.id);
