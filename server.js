@@ -12,8 +12,8 @@ const PORT = process.env.PORT || 5175;
 const DATA_DIR = process.env.DATA_DIR || __dirname;
 const DB_PATH = path.join(DATA_DIR, "database.json");
 const SEED_DB_PATH = path.join(__dirname, "database.json");
-const ADMIN_PIN = cleanEnvValue(process.env.ADMIN_PIN);
-const ADMIN_SESSION_SECRET = cleanEnvValue(process.env.ADMIN_SESSION_SECRET) || ADMIN_PIN;
+const ADMIN_PIN = normalizeSecret(process.env.ADMIN_PIN);
+const ADMIN_SESSION_SECRET = normalizeSecret(process.env.ADMIN_SESSION_SECRET) || ADMIN_PIN;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const NOTIFICATION_WEBHOOK_URL = process.env.NOTIFICATION_WEBHOOK_URL;
@@ -69,6 +69,14 @@ function loadLocalEnv() {
 
 function cleanEnvValue(value) {
   return typeof value === "string" ? value.trim().replace(/^["']|["']$/g, "") : value;
+}
+
+function normalizeSecret(value) {
+  if (typeof value !== "string") return value;
+  return cleanEnvValue(value)
+    .normalize("NFKC")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .trim();
 }
 
 async function readDb() {
@@ -502,7 +510,7 @@ app.post("/api/admin/login", ADMIN_LOGIN_LIMIT, (req, res) => {
     return;
   }
 
-  if (cleanString(req.body.password, 120) !== ADMIN_PIN) {
+  if (normalizeSecret(cleanString(req.body.password, 120)) !== ADMIN_PIN) {
     res.status(401).json({ error: "Senha administrativa inválida." });
     return;
   }
