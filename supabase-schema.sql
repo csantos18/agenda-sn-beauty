@@ -8,7 +8,7 @@ create table if not exists appointments (
   time text not null,
   payment_method text not null,
   notes text default '',
-  status text not null default 'agendado',
+  status text not null default 'pendente',
   created_at timestamptz not null default now()
 );
 

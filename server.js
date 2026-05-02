@@ -31,6 +31,7 @@ const ADMIN_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
 
 const weekdayTimes = buildTimes("08:00", "18:00", 30);
 const shortDayTimes = buildTimes("08:00", "14:00", 30);
+const appointmentStatuses = ["pendente", "confirmado", "cancelado", "concluido"];
 const paymentMethods = ["Pix", "Dinheiro", "Cartão de débito", "Cartão de crédito"];
 const holidayDates = ["2026-01-01", "2026-04-03", "2026-04-21", "2026-05-01", "2026-09-07", "2026-10-12", "2026-11-02", "2026-11-15", "2026-12-25"];
 
@@ -356,6 +357,14 @@ function cleanString(value, maxLength) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
+function normalizeAppointmentStatus(status) {
+  return status === "agendado" ? "pendente" : status;
+}
+
+function csvCell(value) {
+  return `"${String(value ?? "").replace(/"/g, '""')}"`;
+}
+
 function publicAppointment(appointment, services) {
   return {
     id: appointment.id,
@@ -364,13 +373,14 @@ function publicAppointment(appointment, services) {
     professional: appointment.professional,
     date: appointment.date,
     time: appointment.time,
-    status: appointment.status,
+    status: normalizeAppointmentStatus(appointment.status),
   };
 }
 
 function enrichAppointment(appointment, services) {
   return {
     ...appointment,
+    status: normalizeAppointmentStatus(appointment.status),
     service: services.find((service) => service.id === appointment.serviceId),
   };
 }
@@ -464,7 +474,7 @@ function validateAppointment(payload, db, currentId) {
       appointment.date === payload.date &&
       appointment.time === payload.time &&
       appointment.professional === payload.professional &&
-      appointment.status !== "cancelado",
+      normalizeAppointmentStatus(appointment.status) !== "cancelado",
   );
 
   if (conflict) {
@@ -479,7 +489,7 @@ function appointmentValidationStatus(error) {
 }
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", app: "Agenda SN Beauty" });
+  res.json({ status: "ok", app: "Agenda SN Beauty", storage: supabase ? "supabase" : "local-file" });
 });
 
 app.get("/api/admin/session", (req, res) => {
@@ -540,7 +550,7 @@ app.get("/api/availability", async (req, res) => {
           (appointment) =>
             appointment.date === date &&
             appointment.professional === professional &&
-            appointment.status !== "cancelado",
+            normalizeAppointmentStatus(appointment.status) !== "cancelado",
         )
         .map((appointment) => appointment.time)
     : [];
@@ -566,7 +576,7 @@ app.post("/api/appointments", PUBLIC_WRITE_LIMIT, async (req, res) => {
     time: cleanString(req.body.time, 5),
     paymentMethod: req.body.paymentMethod,
     notes: cleanString(req.body.notes, 250),
-    status: "agendado",
+    status: "pendente",
   };
   const error = validateAppointment(payload, db);
 
@@ -593,6 +603,21 @@ app.patch("/api/appointments/:id/cancel", requireAdmin, ADMIN_WRITE_LIMIT, async
   }
 
   appointment.status = "cancelado";
+  await writeDb(db);
+  res.json(enrichAppointment(appointment, db.services));
+});
+
+app.patch("/api/appointments/:id/confirm", requireAdmin, ADMIN_WRITE_LIMIT, async (req, res) => {
+  const db = await readDb();
+  const id = Number(req.params.id);
+  const appointment = db.appointments.find((item) => item.id === id);
+
+  if (!appointment) {
+    res.status(404).json({ error: "Agendamento não encontrado." });
+    return;
+  }
+
+  appointment.status = "confirmado";
   await writeDb(db);
   res.json(enrichAppointment(appointment, db.services));
 });
@@ -652,7 +677,7 @@ app.patch("/api/appointments/:id/reschedule", requireAdmin, ADMIN_WRITE_LIMIT, a
     phone: cleanString(req.body.phone || appointment.phone, 30),
     paymentMethod: req.body.paymentMethod || appointment.paymentMethod,
     notes: cleanString(req.body.notes, 250),
-    status: "agendado",
+    status: "pendente",
   };
   const error = validateAppointment(payload, db, id);
 
@@ -664,6 +689,37 @@ app.patch("/api/appointments/:id/reschedule", requireAdmin, ADMIN_WRITE_LIMIT, a
   Object.assign(appointment, payload);
   await writeDb(db);
   res.json(enrichAppointment(appointment, db.services));
+});
+
+app.get("/api/admin/export", requireAdmin, async (req, res) => {
+  const db = await readDb();
+  const rows = db.appointments.map((appointment) => enrichAppointment(appointment, db.services));
+  const header = ["id", "cliente", "telefone", "servico", "profissional", "data", "horario", "pagamento", "valor", "duracao_min", "status", "observacoes"];
+  const csv = [
+    header.join(","),
+    ...rows.map((appointment) =>
+      [
+        appointment.id,
+        appointment.client,
+        appointment.phone,
+        appointment.service?.name || "",
+        appointment.professional,
+        appointment.date,
+        appointment.time,
+        appointment.paymentMethod,
+        appointment.service?.price || 0,
+        appointment.service?.duration || "",
+        appointment.status,
+        appointment.notes || "",
+      ]
+        .map(csvCell)
+        .join(","),
+    ),
+  ].join("\n");
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", "attachment; filename=agenda-sn-beauty.csv");
+  res.send(`\uFEFF${csv}`);
 });
 
 app.get("/api/reviews", async (req, res) => {

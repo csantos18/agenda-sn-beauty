@@ -373,7 +373,7 @@ dd {
 
 .admin-panel {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.6fr) auto auto;
+  grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.55fr) minmax(150px, 0.45fr) auto auto auto;
   gap: 12px;
   align-items: end;
   margin-bottom: 16px;
@@ -396,7 +396,7 @@ dd {
 
 .admin-stats {
   display: grid;
-  grid-template-columns: repeat(7, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 10px;
   margin-bottom: 16px;
 }
@@ -471,6 +471,16 @@ dd {
   color: #6f458f;
 }
 
+.status.pendente {
+  background: #f4eaf7;
+  color: #6c3483;
+}
+
+.status.confirmado {
+  background: #e7f6ee;
+  color: #1f6f4b;
+}
+
 .status.concluido {
   background: #f6e7bf;
   color: #725115;
@@ -487,6 +497,17 @@ dd {
   min-height: 36px;
   padding: 0 12px;
   font-size: 0.82rem;
+}
+
+.admin-whatsapp {
+  width: 100%;
+  margin-top: 0;
+}
+
+.appointment-notes {
+  margin-top: 8px;
+  border-left: 3px solid var(--rose);
+  padding-left: 10px;
 }
 
 .secondary-button {

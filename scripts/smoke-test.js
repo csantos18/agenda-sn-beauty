@@ -29,6 +29,8 @@ async function main() {
   if (ADMIN_PIN) {
     const cookie = await loginAdmin();
     await expectAdminSeesAppointment(cookie, appointment.id);
+    await confirmAppointment(cookie, appointment.id);
+    await exportCsv(cookie);
     await cancelAppointment(cookie, appointment.id);
     await cleanupLocalAppointment(cookie, appointment.id);
   } else {
@@ -96,6 +98,21 @@ async function expectAdminSeesAppointment(cookie, id) {
   const data = await response.json();
   const found = Array.isArray(data) && data.some((appointment) => appointment.id === id);
   record("admin sees appointment", response.ok && found, `status=${response.status} found=${found}`);
+}
+
+async function confirmAppointment(cookie, id) {
+  const response = await request(`/api/appointments/${id}/confirm`, {
+    method: "PATCH",
+    headers: { Cookie: cookie },
+  });
+  const data = await response.json();
+  record("admin confirms appointment", response.ok && data.status === "confirmado", `status=${response.status}`);
+}
+
+async function exportCsv(cookie) {
+  const response = await request("/api/admin/export", { headers: { Cookie: cookie } });
+  const text = await response.text();
+  record("admin exports csv", response.ok && text.includes("cliente") && text.includes("telefone"), `status=${response.status}`);
 }
 
 async function cancelAppointment(cookie, id) {

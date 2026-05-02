@@ -37,6 +37,13 @@ http://localhost:5175
 
 ## Teste de entrega
 
+## AtualizaÃ§Ãµes operacionais
+
+- O painel administrativo usa status `pendente`, `confirmado`, `cancelado` e `concluido`.
+- A profissional pode confirmar, concluir, desmarcar, remarcar e chamar a cliente pelo WhatsApp.
+- A agenda pode ser filtrada por status e exportada em CSV.
+- A rota `/api/health` informa se o app estÃ¡ usando Supabase ou arquivo local.
+
 Com o servidor rodando, execute:
 
 ```bash

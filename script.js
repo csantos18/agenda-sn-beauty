@@ -22,8 +22,10 @@ const todayCount = document.querySelector("#todayCount");
 const adminForm = document.querySelector("#adminForm");
 const adminPinInput = document.querySelector("#adminPinInput");
 const adminDateInput = document.querySelector("#adminDateInput");
+const adminStatusFilter = document.querySelector("#adminStatusFilter");
 const adminStats = document.querySelector("#adminStats");
 const adminLockButton = document.querySelector("#adminLockButton");
+const adminExportButton = document.querySelector("#adminExportButton");
 const adminStatus = document.querySelector("#adminStatus");
 const reviewForm = document.querySelector("#reviewForm");
 const reviewsList = document.querySelector("#reviewsList");
@@ -82,6 +84,29 @@ function showMessage(message) {
   alert(message);
 }
 
+function statusLabel(status) {
+  const labels = {
+    pendente: "Pendente",
+    confirmado: "Confirmado",
+    cancelado: "Cancelado",
+    concluido: "Concluído",
+    agendado: "Pendente",
+  };
+  return labels[status] || status;
+}
+
+function normalizeStatus(status) {
+  return status === "agendado" ? "pendente" : status;
+}
+
+function formatPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits ? `(${digits}` : "";
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
 function buildBookingWhatsAppUrl(appointment) {
   const service = services.find((item) => item.id === Number(appointment.serviceId));
   const message = [
@@ -102,6 +127,24 @@ function buildBookingWhatsAppUrl(appointment) {
     .join("\n");
 
   return `https://wa.me/${SALON_WHATSAPP}?text=${encodeURIComponent(message)}`;
+}
+
+function buildClientWhatsAppUrl(appointment, mode = "contact") {
+  const digits = String(appointment.phone || "").replace(/\D/g, "");
+  const serviceName = appointment.service?.name || "seu atendimento";
+  const messages = {
+    confirm: [
+      `Olá, ${appointment.client}!`,
+      `Seu horário no Sarah Neves Beauty Studio foi confirmado para ${formatDate(appointment.date)} às ${appointment.time}.`,
+      `Serviço: ${serviceName}.`,
+      "Qualquer imprevisto, me avise por aqui.",
+    ],
+    contact: [
+      `Olá, ${appointment.client}!`,
+      `Estou entrando em contato sobre seu agendamento de ${serviceName} no dia ${formatDate(appointment.date)} às ${appointment.time}.`,
+    ],
+  };
+  return `https://wa.me/55${digits}?text=${encodeURIComponent((messages[mode] || messages.contact).join("\n"))}`;
 }
 
 function showBookingConfirmation(appointment) {
@@ -254,8 +297,9 @@ function renderAdminStats(items, selectedDate) {
     return;
   }
 
-  const active = items.filter((appointment) => appointment.status !== "cancelado");
-  const scheduled = items.filter((appointment) => appointment.status === "agendado");
+  const active = items.filter((appointment) => normalizeStatus(appointment.status) !== "cancelado");
+  const pending = items.filter((appointment) => normalizeStatus(appointment.status) === "pendente");
+  const confirmed = items.filter((appointment) => normalizeStatus(appointment.status) === "confirmado");
   const completed = items.filter((appointment) => appointment.status === "concluido");
   const canceled = items.filter((appointment) => appointment.status === "cancelado");
   const expectedRevenue = active.reduce((sum, appointment) => sum + appointmentValue(appointment), 0);
@@ -264,7 +308,8 @@ function renderAdminStats(items, selectedDate) {
   adminStats.innerHTML = [
     ["Data", formatDate(selectedDate)],
     ["Ativos", String(active.length)],
-    ["Próximos", String(scheduled.length)],
+    ["Pendentes", String(pending.length)],
+    ["Confirmados", String(confirmed.length)],
     ["Concluídos", String(completed.length)],
     ["Cancelados", String(canceled.length)],
     ["Previsto", money(expectedRevenue)],
@@ -291,7 +336,12 @@ function renderAppointments() {
   }
 
   const selectedAdminDate = adminDateInput.value || new Date().toISOString().slice(0, 10);
-  const visibleAppointments = appointments.filter((appointment) => appointment.date === selectedAdminDate);
+  const selectedStatus = adminStatusFilter?.value || "todos";
+  const visibleAppointments = appointments.filter(
+    (appointment) =>
+      appointment.date === selectedAdminDate &&
+      (selectedStatus === "todos" || normalizeStatus(appointment.status) === selectedStatus),
+  );
   const sorted = [...visibleAppointments].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
   renderAdminStats(sorted, selectedAdminDate);
   if (!sorted.length) {
@@ -309,12 +359,19 @@ function renderAppointments() {
             <h3>${escapeHtml(appointment.client)}</h3>
             <p>${escapeHtml(appointment.service.name)} com ${escapeHtml(appointment.professional)} em ${formatDate(appointment.date)}</p>
             <p>${escapeHtml(appointment.phone)} | ${escapeHtml(appointment.paymentMethod)} | ${money(appointment.service.price)} | ${appointment.service.duration} min</p>
-            ${appointment.notes ? `<p>Obs.: ${escapeHtml(appointment.notes)}</p>` : ""}
+            ${appointment.notes ? `<p class="appointment-notes"><strong>Obs.:</strong> ${escapeHtml(appointment.notes)}</p>` : ""}
           </div>
           <div class="appointment-actions">
-            <span class="status ${escapeHtml(appointment.status)}">${escapeHtml(appointment.status)}</span>
+            <span class="status ${escapeHtml(normalizeStatus(appointment.status))}">${escapeHtml(statusLabel(appointment.status))}</span>
             ${
-              appointment.status !== "cancelado" && appointment.status !== "concluido"
+              normalizeStatus(appointment.status) === "pendente"
+                ? `<button class="secondary-button" type="button" data-action="confirm" data-id="${appointment.id}">Confirmar</button>`
+                : ""
+            }
+            <a class="secondary-button admin-whatsapp" href="${buildClientWhatsAppUrl(appointment, "confirm")}" target="_blank" rel="noopener">Confirmar WhatsApp</a>
+            <a class="ghost-button admin-whatsapp" href="${buildClientWhatsAppUrl(appointment)}" target="_blank" rel="noopener">Chamar cliente</a>
+            ${
+              !["cancelado", "concluido"].includes(normalizeStatus(appointment.status))
                 ? `<button class="secondary-button" type="button" data-action="complete" data-id="${appointment.id}">Concluir</button>`
                 : ""
             }
@@ -406,7 +463,7 @@ bookingForm.addEventListener("submit", async (event) => {
         body: JSON.stringify(payload),
       });
       showBookingConfirmation({ ...payload, ...createdAppointment });
-      showMessage("Agendamento confirmado com sucesso. Aguarde confirmação da profissional. Você também pode enviar os dados pelo WhatsApp.");
+      showMessage("Seu horário foi solicitado. Aguarde confirmação da profissional pelo WhatsApp.");
     }
 
     resetBookingForm();
@@ -441,6 +498,19 @@ appointmentsList.addEventListener("click", async (event) => {
     return;
   }
 
+  if (button.dataset.action === "confirm") {
+    try {
+      await api(`/api/appointments/${id}/confirm`, { method: "PATCH", admin: true });
+      showMessage("Agendamento confirmado no painel.");
+      await loadAppointments();
+      await loadAvailability();
+      renderSummary();
+    } catch (error) {
+      showMessage(error.message);
+    }
+    return;
+  }
+
   if (button.dataset.action === "complete") {
     try {
       await api(`/api/appointments/${id}/complete`, { method: "PATCH", admin: true });
@@ -466,6 +536,10 @@ appointmentsList.addEventListener("click", async (event) => {
   timeSelect.value = appointment.time;
   renderSummary();
   document.querySelector("#agendar").scrollIntoView({ behavior: "smooth" });
+});
+
+document.querySelector("#clientPhone").addEventListener("input", (event) => {
+  event.target.value = formatPhone(event.target.value);
 });
 
 adminForm.addEventListener("submit", async (event) => {
@@ -509,6 +583,17 @@ adminLockButton.addEventListener("click", async () => {
   }
   renderAppointments();
   updateAdminStatus("Painel bloqueado neste navegador.");
+});
+
+adminStatusFilter.addEventListener("change", renderAppointments);
+
+adminExportButton.addEventListener("click", () => {
+  if (!adminAuthenticated) {
+    updateAdminStatus("Abra o painel antes de exportar a agenda.");
+    return;
+  }
+
+  window.location.href = apiUrl("/api/admin/export");
 });
 
 reviewForm.addEventListener("submit", async (event) => {
@@ -568,3 +653,4 @@ async function init() {
 }
 
 init();
+
