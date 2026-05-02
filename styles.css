@@ -40,6 +40,10 @@ a {
   pointer-events: none;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .topbar {
   position: sticky;
   top: 0;

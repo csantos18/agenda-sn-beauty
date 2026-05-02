@@ -17,6 +17,7 @@ const paymentSelect = document.querySelector("#paymentSelect");
 const notesInput = document.querySelector("#notesInput");
 const bookingSummary = document.querySelector("#bookingSummary");
 const bookingForm = document.querySelector("#bookingForm");
+const adminSection = document.querySelector("#agenda");
 const appointmentsList = document.querySelector("#appointmentsList");
 const todayCount = document.querySelector("#todayCount");
 const adminForm = document.querySelector("#adminForm");
@@ -175,9 +176,16 @@ function hideBookingConfirmation() {
 }
 
 function updateAdminStatus(message) {
+  syncAdminVisibility();
   adminStatus.textContent =
     message || (adminAuthenticated ? "Painel administrativo liberado neste navegador." : "Painel protegido. Apenas a profissional deve acessar a agenda completa.");
   adminPinInput.value = adminAuthenticated ? "********" : "";
+}
+
+function syncAdminVisibility() {
+  if (!adminSection) return;
+  const openedByAdminLink = window.location.hash === "#agenda" || window.location.search.includes("admin=1");
+  adminSection.hidden = !adminAuthenticated && !openedByAdminLink;
 }
 
 function renderServices() {
@@ -596,7 +604,7 @@ adminForm.addEventListener("submit", async (event) => {
     renderAppointments();
     const message =
       error.message === "Senha administrativa inválida."
-        ? "Senha administrativa inválida. Confira se o ADMIN_PIN do Render está igual à senha combinada."
+        ? "Senha administrativa inválida. Confira a senha do salão."
         : error.message;
     updateAdminStatus(message);
   }
@@ -661,6 +669,7 @@ reviewForm.addEventListener("submit", async (event) => {
 });
 
 adminDateInput.addEventListener("change", renderAppointments);
+window.addEventListener("hashchange", syncAdminVisibility);
 
 async function init() {
   try {
