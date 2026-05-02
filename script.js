@@ -30,9 +30,14 @@ const appMessage = document.querySelector("#appMessage");
 const LOCAL_API_ORIGIN = "http://localhost:5175";
 const SALON_WHATSAPP = "5561981561421";
 const BUSINESS_TIME_ZONE = "America/Sao_Paulo";
+const DEPOSIT_RATE = 0.2;
 
 function money(value) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function depositAmount(service) {
+  return Number(service?.price || 0) * DEPOSIT_RATE;
 }
 
 function pluralize(count, singular, plural) {
@@ -129,6 +134,7 @@ function formatPhone(value) {
 
 function buildBookingWhatsAppUrl(appointment) {
   const service = services.find((item) => item.id === Number(appointment.serviceId));
+  const deposit = depositAmount(service);
   const message = [
     "Olá! Fiz um agendamento pelo Agenda SN Beauty.",
     appointment.id ? `Protocolo: #${appointment.id}` : "",
@@ -140,9 +146,11 @@ function buildBookingWhatsAppUrl(appointment) {
     `Data: ${formatDate(appointment.date)}`,
     `Horário: ${appointment.time}`,
     `Pagamento: ${appointment.paymentMethod}`,
+    `Sinal de 20%: ${money(deposit)}`,
+    service ? `Restante no atendimento: ${money(service.price - deposit)}` : "",
     appointment.notes ? `Observações: ${appointment.notes}` : "",
     "",
-    "Pode confirmar se esse horário está disponível, por favor?",
+    "Pode confirmar o horário e a forma de envio do sinal, por favor?",
   ]
     .filter(Boolean)
     .join("\n");
@@ -156,12 +164,15 @@ function showBookingConfirmation(appointment) {
   bookingWhatsAppLink.href = buildBookingWhatsAppUrl(appointment);
   if (confirmationDetails) {
     const service = services.find((item) => item.id === Number(appointment.serviceId));
+    const deposit = depositAmount(service);
     confirmationDetails.innerHTML = [
       appointment.id ? ["Protocolo", `#${appointment.id}`] : null,
       ["Status", statusLabel(appointment.status || "pendente")],
       ["Serviço", service ? service.name : "Serviço selecionado"],
       ["Data", formatDate(appointment.date)],
       ["Horário", appointment.time],
+      service ? ["Sinal de 20%", money(deposit)] : null,
+      service ? ["Restante no atendimento", money(service.price - deposit)] : null,
     ]
       .filter(Boolean)
       .map(([label, value]) => `<span><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</span>`)
@@ -280,6 +291,8 @@ function currentSummary() {
     ["Pagamento", paymentSelect.value || "Selecione"],
     ["Observações", notesInput.value.trim() || "Nenhuma"],
     ["Valor", money(service.price)],
+    ["Sinal de 20%", money(depositAmount(service))],
+    ["Restante", money(service.price - depositAmount(service))],
     ["Duração", `${service.duration} min`],
     ["Funcionamento", isShortDaySelected() ? "08:00 às 14:00" : "08:00 às 18:00"],
   ];
@@ -427,7 +440,7 @@ function renderLookupResults(items) {
             <span class="status ${escapeHtml(normalizeStatus(appointment.status))}">${escapeHtml(statusLabel(appointment.status))}</span>
             <h3>${escapeHtml(appointment.service?.name || "Serviço")}</h3>
             <p>${formatDate(appointment.date)} às ${escapeHtml(appointment.time)} com ${escapeHtml(appointment.professional)}</p>
-            <p>${appointment.service ? `${money(appointment.service.price)} | ${appointment.service.duration} min` : ""}</p>
+            <p>${appointment.service ? `${money(appointment.service.price)} | sinal ${money(depositAmount(appointment.service))} | ${appointment.service.duration} min` : ""}</p>
           </div>
         </article>
       `,

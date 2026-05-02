@@ -54,12 +54,14 @@ function expectUiContracts() {
   const publicHtml = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
   const adminHtml = fs.readFileSync(path.join(__dirname, "..", "admin.html"), "utf8");
   const adminJs = fs.readFileSync(path.join(__dirname, "..", "admin.js"), "utf8");
+  const publicJs = fs.readFileSync(path.join(__dirname, "..", "script.js"), "utf8");
 
   record("public message region exists", publicHtml.includes('id="appMessage"'), "appMessage");
   record("admin search exists", adminHtml.includes('id="adminSearchInput"'), "adminSearchInput");
   record("admin week panel exists", adminHtml.includes('id="adminWeekPanel"'), "adminWeekPanel");
   record("admin search filters appointments", adminJs.includes("appointmentMatchesSearch"), "appointmentMatchesSearch");
   record("week cards are clickable", adminJs.includes("data-week-date") && adminJs.includes("selectWeekDate"), "selectWeekDate");
+  record("deposit rule visible", publicHtml.includes("20%") && publicJs.includes("DEPOSIT_RATE = 0.2"), "deposit 20%");
 }
 
 async function checkGet(name, route) {
@@ -154,7 +156,8 @@ async function expectClientLookupFindsAppointment(id) {
   const data = await response.json();
   const found = Array.isArray(data.appointments) && data.appointments.some((appointment) => appointment.id === id);
   const exposesPrivateFields = JSON.stringify(data).includes("99999-0000") || JSON.stringify(data).includes("Teste Smoke");
-  record("client lookup finds public appointment", response.ok && found && !exposesPrivateFields, `status=${response.status} found=${found} private=${exposesPrivateFields}`);
+  const exposesDeposit = JSON.stringify(data).includes("depositAmount") || JSON.stringify(data).includes("remainingAmount");
+  record("client lookup finds public appointment", response.ok && found && !exposesPrivateFields && exposesDeposit, `status=${response.status} found=${found} private=${exposesPrivateFields} deposit=${exposesDeposit}`);
 }
 
 async function loginAdmin() {
@@ -186,7 +189,7 @@ async function confirmAppointment(cookie, id) {
 async function exportCsv(cookie) {
   const response = await request("/api/admin/export", { headers: { Cookie: cookie } });
   const text = await response.text();
-  record("admin exports csv", response.ok && text.includes("cliente") && text.includes("telefone"), `status=${response.status}`);
+  record("admin exports csv", response.ok && text.includes("cliente") && text.includes("telefone") && text.includes("sinal_20"), `status=${response.status}`);
 }
 
 async function cancelAppointment(cookie, id) {

@@ -29,6 +29,7 @@ const editDateInput = document.querySelector("#editDateInput");
 const editTimeSelect = document.querySelector("#editTimeSelect");
 const editNotesInput = document.querySelector("#editNotesInput");
 const BUSINESS_TIME_ZONE = "America/Sao_Paulo";
+const DEPOSIT_RATE = 0.2;
 
 function money(value) {
   return Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -105,6 +106,10 @@ function normalizeStatus(status) {
 
 function appointmentValue(appointment) {
   return appointment.service?.price || 0;
+}
+
+function appointmentDeposit(appointment) {
+  return appointmentValue(appointment) * DEPOSIT_RATE;
 }
 
 function addDays(date, amount) {
@@ -243,11 +248,14 @@ function buildClientWhatsAppUrl(appointment, mode = "contact") {
       `Olá, ${appointment.client}!`,
       `Seu horário no Sarah Neves Beauty Studio foi confirmado para ${formatDate(appointment.date)} às ${appointment.time}.`,
       `Serviço: ${serviceName}.`,
+      `Sinal de 20% para reservar: ${money(appointmentDeposit(appointment))}.`,
+      `Restante no atendimento: ${money(appointmentValue(appointment) - appointmentDeposit(appointment))}.`,
       "Qualquer imprevisto, me avise por aqui.",
     ],
     contact: [
       `Olá, ${appointment.client}!`,
       `Estou entrando em contato sobre seu agendamento de ${serviceName} no dia ${formatDate(appointment.date)} às ${appointment.time}.`,
+      `O sinal de 20% desse procedimento fica em ${money(appointmentDeposit(appointment))}.`,
     ],
   };
   return `https://wa.me/55${digits}?text=${encodeURIComponent((messages[mode] || messages.contact).join("\n"))}`;
@@ -285,7 +293,7 @@ function renderAppointments() {
           <div>
             <h3>${escapeHtml(appointment.client)}</h3>
             <p>${escapeHtml(appointment.service?.name || "Serviço")} com ${escapeHtml(appointment.professional)} em ${formatDate(appointment.date)}</p>
-            <p>${escapeHtml(appointment.phone)} | ${escapeHtml(appointment.paymentMethod)} | ${money(appointment.service?.price)} | ${appointment.service?.duration || ""} min</p>
+            <p>${escapeHtml(appointment.phone)} | ${escapeHtml(appointment.paymentMethod)} | ${money(appointment.service?.price)} | sinal ${money(appointmentDeposit(appointment))} | ${appointment.service?.duration || ""} min</p>
             ${appointment.notes ? `<p class="appointment-notes"><strong>Obs.:</strong> ${escapeHtml(appointment.notes)}</p>` : ""}
           </div>
           <div class="appointment-actions">

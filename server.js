@@ -43,6 +43,7 @@ const schedules = {
 const appointmentStatuses = ["pendente", "confirmado", "cancelado", "concluido"];
 const paymentMethods = ["Pix", "Dinheiro", "Cartão de débito", "Cartão de crédito"];
 const holidayDates = ["2026-01-01", "2026-04-03", "2026-04-21", "2026-05-01", "2026-09-07", "2026-10-12", "2026-11-02", "2026-11-15", "2026-12-25"];
+const DEPOSIT_RATE = 0.2;
 
 app.set("trust proxy", 1);
 app.use(localDevCors);
@@ -509,6 +510,10 @@ function csvCell(value) {
   return `"${String(value ?? "").replace(/"/g, '""')}"`;
 }
 
+function depositForService(service) {
+  return Number(service?.price || 0) * DEPOSIT_RATE;
+}
+
 function publicAppointment(appointment, services) {
   return {
     id: appointment.id,
@@ -532,6 +537,8 @@ function publicClientAppointment(appointment, services) {
           duration: service.duration,
         }
       : null,
+    depositAmount: depositForService(service),
+    remainingAmount: Number(service?.price || 0) - depositForService(service),
     professional: appointment.professional,
     date: appointment.date,
     time: appointment.time,
@@ -590,6 +597,8 @@ function appointmentNotificationPayload(appointment, services) {
       date: appointment.date,
       time: appointment.time,
       paymentMethod: appointment.paymentMethod,
+      depositAmount: depositForService(service),
+      remainingAmount: Number(service?.price || 0) - depositForService(service),
       notes: appointment.notes || "",
       status: appointment.status,
     },
@@ -601,6 +610,7 @@ function appointmentNotificationPayload(appointment, services) {
       `Data: ${appointment.date}`,
       `Horário: ${appointment.time}`,
       `Pagamento: ${appointment.paymentMethod}`,
+      `Sinal de 20%: ${depositForService(service).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
       appointment.notes ? `Observações: ${appointment.notes}` : "",
     ]
       .filter(Boolean)
@@ -928,7 +938,7 @@ app.patch("/api/appointments/:id/reschedule", requireAdmin, ADMIN_WRITE_LIMIT, a
 app.get("/api/admin/export", requireAdmin, async (req, res) => {
   const db = await readDb();
   const rows = db.appointments.map((appointment) => enrichAppointment(appointment, db.services));
-  const header = ["id", "cliente", "telefone", "servico", "profissional", "data", "horario", "pagamento", "valor", "duracao_min", "status", "observacoes"];
+  const header = ["id", "cliente", "telefone", "servico", "profissional", "data", "horario", "pagamento", "valor", "sinal_20", "restante", "duracao_min", "status", "observacoes"];
   const csv = [
     header.join(","),
     ...rows.map((appointment) =>
@@ -942,6 +952,8 @@ app.get("/api/admin/export", requireAdmin, async (req, res) => {
         appointment.time,
         appointment.paymentMethod,
         appointment.service?.price || 0,
+        depositForService(appointment.service),
+        Number(appointment.service?.price || 0) - depositForService(appointment.service),
         appointment.service?.duration || "",
         appointment.status,
         appointment.notes || "",
