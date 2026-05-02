@@ -490,7 +490,11 @@ adminForm.addEventListener("submit", async (event) => {
     adminAuthenticated = false;
     appointments = [];
     renderAppointments();
-    updateAdminStatus(error.message);
+    const message =
+      error.message === "Senha administrativa inválida."
+        ? "Senha administrativa inválida. Confira se o ADMIN_PIN do Render está igual à senha combinada."
+        : error.message;
+    updateAdminStatus(message);
   }
 });
 
