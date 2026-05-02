@@ -389,6 +389,38 @@ dd {
   font-size: 0.9rem;
 }
 
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--white);
+}
+
+.stat-card span,
+.stat-card strong {
+  display: block;
+}
+
+.stat-card span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.stat-card strong {
+  margin-top: 6px;
+  color: var(--ink);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+}
+
 .empty-state {
   border: 1px dashed var(--line);
   border-radius: 8px;
@@ -705,6 +737,7 @@ dd {
   .reviews-list,
   .policy-grid,
   .privacy-grid,
+  .admin-stats,
   .contact-grid {
     grid-template-columns: repeat(2, minmax(160px, 1fr));
   }
@@ -747,6 +780,7 @@ dd {
   .reviews-list,
   .policy-grid,
   .privacy-grid,
+  .admin-stats,
   .contact-grid,
   .form-row {
     grid-template-columns: 1fr;

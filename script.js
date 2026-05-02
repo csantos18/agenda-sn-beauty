@@ -22,6 +22,7 @@ const todayCount = document.querySelector("#todayCount");
 const adminForm = document.querySelector("#adminForm");
 const adminPinInput = document.querySelector("#adminPinInput");
 const adminDateInput = document.querySelector("#adminDateInput");
+const adminStats = document.querySelector("#adminStats");
 const adminLockButton = document.querySelector("#adminLockButton");
 const adminStatus = document.querySelector("#adminStatus");
 const reviewForm = document.querySelector("#reviewForm");
@@ -244,9 +245,49 @@ function renderSummary() {
     .join("");
 }
 
+function appointmentValue(appointment) {
+  return appointment.service?.price || 0;
+}
+
+function renderAdminStats(items, selectedDate) {
+  if (!adminStats) return;
+
+  if (!adminPin) {
+    adminStats.innerHTML = "";
+    return;
+  }
+
+  const active = items.filter((appointment) => appointment.status !== "cancelado");
+  const scheduled = items.filter((appointment) => appointment.status === "agendado");
+  const completed = items.filter((appointment) => appointment.status === "concluido");
+  const canceled = items.filter((appointment) => appointment.status === "cancelado");
+  const expectedRevenue = active.reduce((sum, appointment) => sum + appointmentValue(appointment), 0);
+  const completedRevenue = completed.reduce((sum, appointment) => sum + appointmentValue(appointment), 0);
+
+  adminStats.innerHTML = [
+    ["Data", formatDate(selectedDate)],
+    ["Ativos", String(active.length)],
+    ["Próximos", String(scheduled.length)],
+    ["Concluídos", String(completed.length)],
+    ["Cancelados", String(canceled.length)],
+    ["Previsto", money(expectedRevenue)],
+    ["Realizado", money(completedRevenue)],
+  ]
+    .map(
+      ([label, value]) => `
+        <article class="stat-card">
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(value)}</strong>
+        </article>
+      `,
+    )
+    .join("");
+}
+
 function renderAppointments() {
   if (!adminPin) {
     appointments = [];
+    renderAdminStats([], new Date().toISOString().slice(0, 10));
     appointmentsList.innerHTML = '<div class="empty-state">Digite o PIN administrativo para ver a agenda completa.</div>';
     todayCount.textContent = "Painel protegido";
     return;
@@ -255,6 +296,7 @@ function renderAppointments() {
   const selectedAdminDate = adminDateInput.value || new Date().toISOString().slice(0, 10);
   const visibleAppointments = appointments.filter((appointment) => appointment.date === selectedAdminDate);
   const sorted = [...visibleAppointments].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+  renderAdminStats(sorted, selectedAdminDate);
   if (!sorted.length) {
     appointmentsList.innerHTML = `<div class="empty-state">Nenhum agendamento registrado para ${formatDate(selectedAdminDate)}.</div>`;
     todayCount.textContent = "0 horários";

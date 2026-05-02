@@ -14,6 +14,7 @@ Histórico de mudanças relevantes do Agenda SN Beauty.
 - Seção de orientações antes do agendamento.
 - Seção de privacidade e termos de uso.
 - Filtro por data no painel administrativo.
+- Dashboard administrativo com estatísticas por data.
 - Ação para marcar agendamento como concluído.
 - Documentação de objetivo, regras de negócio, segurança e rotas da API.
 

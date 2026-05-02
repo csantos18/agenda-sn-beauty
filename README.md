@@ -13,6 +13,7 @@ Organizar os atendimentos do salão de forma simples para a cliente e segura par
 - Validação para evitar dois agendamentos no mesmo horário/profissional.
 - Painel administrativo protegido por PIN.
 - Filtro por data no painel administrativo.
+- Dashboard administrativo com estatísticas da data selecionada.
 - Cancelamento, remarcação e conclusão de atendimentos.
 - Avaliações das clientes com média de notas.
 - Confirmação do agendamento por WhatsApp com mensagem pronta.
