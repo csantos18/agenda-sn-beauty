@@ -16,6 +16,7 @@ Histórico de mudanças relevantes do Agenda SN Beauty.
 - Filtro por data no painel administrativo.
 - Dashboard administrativo com estatísticas por data.
 - Ação para marcar agendamento como concluído.
+- Login administrativo com sessão HTTP-only no lugar de guardar PIN no navegador.
 - Documentação de objetivo, regras de negócio, segurança e rotas da API.
 
 ### Alterado
@@ -28,7 +29,8 @@ Histórico de mudanças relevantes do Agenda SN Beauty.
 
 - Chave `SUPABASE_SERVICE_ROLE_KEY` mantida apenas no servidor via variável de ambiente.
 - URL do webhook de notificação mantida apenas no servidor via variável de ambiente.
-- Agenda completa continua protegida por `ADMIN_PIN`.
+- Agenda completa continua protegida por senha administrativa e cookie de sessão assinado.
+- Senha administrativa não é armazenada no navegador.
 - Dados sensíveis de clientes não são exibidos na área pública.
 
 ### Validado

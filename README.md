@@ -11,7 +11,7 @@ Organizar os atendimentos do salão de forma simples para a cliente e segura par
 - Catálogo de serviços com preço, duração e descrição.
 - Agendamento com cliente, telefone, serviço, profissional, data e horário.
 - Validação para evitar dois agendamentos no mesmo horário/profissional.
-- Painel administrativo protegido por PIN.
+- Painel administrativo protegido por login com senha e sessão HTTP-only.
 - Filtro por data no painel administrativo.
 - Dashboard administrativo com estatísticas da data selecionada.
 - Cancelamento, remarcação e conclusão de atendimentos.
@@ -52,7 +52,8 @@ No Render Free, use Supabase para não perder agendamentos e avaliações em rei
 4. No Render, configure as variáveis de ambiente:
 
 ```text
-ADMIN_PIN=seu-pin-administrativo
+ADMIN_PIN=sua-senha-administrativa
+ADMIN_SESSION_SECRET=seu-segredo-de-sessao
 SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
 NOTIFICATION_WEBHOOK_URL=https://exemplo.com/webhook-de-agendamento
@@ -64,10 +65,11 @@ Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas 
 
 ## Regras de Segurança
 
-- A agenda completa só pode ser acessada com o header `x-admin-pin`.
+- A agenda completa só pode ser acessada com login administrativo e sessão válida.
 - Dados sensíveis de clientes, como telefone, não são exibidos na área pública.
 - A `SUPABASE_SERVICE_ROLE_KEY` fica apenas em variável de ambiente no servidor.
 - O front-end não recebe nem expõe chaves secretas.
+- A senha administrativa não é salva no navegador; o acesso usa cookie HTTP-only com assinatura.
 - O servidor usa headers de segurança básicos, limite de JSON e rate limit para escritas públicas.
 - O Supabase está com Row Level Security habilitado nas tabelas criadas pelo schema.
 - A seção pública de privacidade informa quais dados são coletados e como são usados.
@@ -92,11 +94,14 @@ Nunca coloque a `SUPABASE_SERVICE_ROLE_KEY` no front-end. Ela deve ficar apenas 
 - `GET /api/professionals`
 - `GET /api/payment-methods`
 - `GET /api/availability?date=AAAA-MM-DD&professional=Jacinta%20Santos`
-- `GET /api/appointments` com header `x-admin-pin`
+- `GET /api/admin/session`
+- `POST /api/admin/login`
+- `POST /api/admin/logout`
+- `GET /api/appointments` com sessão administrativa
 - `POST /api/appointments`
-- `PATCH /api/appointments/:id/cancel` com header `x-admin-pin`
-- `PATCH /api/appointments/:id/complete` com header `x-admin-pin`
-- `PATCH /api/appointments/:id/reschedule` com header `x-admin-pin`
+- `PATCH /api/appointments/:id/cancel` com sessão administrativa
+- `PATCH /api/appointments/:id/complete` com sessão administrativa
+- `PATCH /api/appointments/:id/reschedule` com sessão administrativa
 - `GET /api/reviews`
 - `POST /api/reviews`
 

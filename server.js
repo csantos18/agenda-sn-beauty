@@ -1,4 +1,5 @@
 const express = require("express");
+const crypto = require("crypto");
 const fs = require("fs/promises");
 const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
@@ -9,6 +10,7 @@ const DATA_DIR = process.env.DATA_DIR || __dirname;
 const DB_PATH = path.join(DATA_DIR, "database.json");
 const SEED_DB_PATH = path.join(__dirname, "database.json");
 const ADMIN_PIN = process.env.ADMIN_PIN;
+const ADMIN_SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || ADMIN_PIN;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const NOTIFICATION_WEBHOOK_URL = process.env.NOTIFICATION_WEBHOOK_URL;
@@ -20,6 +22,9 @@ const supabase =
     : null;
 const PUBLIC_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 40 });
 const ADMIN_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 80 });
+const ADMIN_LOGIN_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 12 });
+const ADMIN_SESSION_COOKIE = "sn_admin_session";
+const ADMIN_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
 
 const weekdayTimes = buildTimes("08:00", "18:00", 30);
 const shortDayTimes = buildTimes("08:00", "14:00", 30);
@@ -34,6 +39,10 @@ app.use(express.static(__dirname));
 
 if (!ADMIN_PIN) {
   console.warn("ADMIN_PIN não configurado. O painel administrativo ficará bloqueado.");
+}
+
+if (!ADMIN_SESSION_SECRET) {
+  console.warn("ADMIN_SESSION_SECRET não configurado. Configure ADMIN_PIN ou ADMIN_SESSION_SECRET no Render.");
 }
 
 async function readDb() {
@@ -195,6 +204,7 @@ function localDevCors(req, res, next) {
     res.setHeader("Vary", "Origin");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-admin-pin");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
   }
 
   if (req.method === "OPTIONS") {
@@ -211,12 +221,82 @@ function requireAdmin(req, res, next) {
     return;
   }
 
-  if (req.get("x-admin-pin") !== ADMIN_PIN) {
+  if (!isValidAdminSession(req)) {
     res.status(401).json({ error: "Acesso administrativo não autorizado." });
     return;
   }
 
   next();
+}
+
+function parseCookies(req) {
+  return Object.fromEntries(
+    String(req.get("cookie") || "")
+      .split(";")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map((item) => {
+        const separator = item.indexOf("=");
+        return separator === -1
+          ? [decodeURIComponent(item), ""]
+          : [decodeURIComponent(item.slice(0, separator)), decodeURIComponent(item.slice(separator + 1))];
+      }),
+  );
+}
+
+function signSession(payload) {
+  return crypto.createHmac("sha256", ADMIN_SESSION_SECRET).update(payload).digest("base64url");
+}
+
+function createAdminSession() {
+  const expiresAt = Date.now() + ADMIN_SESSION_MAX_AGE_SECONDS * 1000;
+  const nonce = crypto.randomBytes(16).toString("base64url");
+  const payload = `${expiresAt}.${nonce}`;
+  return `${payload}.${signSession(payload)}`;
+}
+
+function isValidAdminSession(req) {
+  if (!ADMIN_SESSION_SECRET) return false;
+
+  const token = parseCookies(req)[ADMIN_SESSION_COOKIE];
+  if (!token) return false;
+
+  const parts = token.split(".");
+  if (parts.length !== 3) return false;
+
+  const [expiresAt, nonce, signature] = parts;
+  const payload = `${expiresAt}.${nonce}`;
+  const expected = signSession(payload);
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+
+  if (signatureBuffer.length !== expectedBuffer.length || !crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) {
+    return false;
+  }
+
+  return Number(expiresAt) > Date.now();
+}
+
+function setAdminSessionCookie(res) {
+  const secure = process.env.NODE_ENV === "production";
+  const cookie = [
+    `${ADMIN_SESSION_COOKIE}=${encodeURIComponent(createAdminSession())}`,
+    "HttpOnly",
+    "Path=/",
+    "SameSite=Lax",
+    `Max-Age=${ADMIN_SESSION_MAX_AGE_SECONDS}`,
+    secure ? "Secure" : "",
+  ]
+    .filter(Boolean)
+    .join("; ");
+  res.setHeader("Set-Cookie", cookie);
+}
+
+function clearAdminSessionCookie(res) {
+  res.setHeader(
+    "Set-Cookie",
+    `${ADMIN_SESSION_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
+  );
 }
 
 function toMinutes(time) {
@@ -371,6 +451,30 @@ function validateAppointment(payload, db, currentId) {
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", app: "Agenda SN Beauty" });
+});
+
+app.get("/api/admin/session", (req, res) => {
+  res.json({ authenticated: isValidAdminSession(req) });
+});
+
+app.post("/api/admin/login", ADMIN_LOGIN_LIMIT, (req, res) => {
+  if (!ADMIN_PIN) {
+    res.status(503).json({ error: "Painel administrativo bloqueado. Configure ADMIN_PIN no Render." });
+    return;
+  }
+
+  if (cleanString(req.body.password, 120) !== ADMIN_PIN) {
+    res.status(401).json({ error: "Senha administrativa inválida." });
+    return;
+  }
+
+  setAdminSessionCookie(res);
+  res.json({ authenticated: true });
+});
+
+app.post("/api/admin/logout", (req, res) => {
+  clearAdminSessionCookie(res);
+  res.json({ authenticated: false });
 });
 
 app.get("/api/services", async (req, res) => {

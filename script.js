@@ -5,7 +5,7 @@ let appointments = [];
 let reviews = [];
 let availableTimes = [];
 let editingAppointmentId = null;
-let adminPin = sessionStorage.getItem("adminPin") || "";
+let adminAuthenticated = false;
 
 const servicesGrid = document.querySelector("#servicesGrid");
 const serviceSelect = document.querySelector("#serviceSelect");
@@ -51,10 +51,6 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function adminHeaders() {
-  return adminPin ? { "x-admin-pin": adminPin } : {};
-}
-
 function apiUrl(path) {
   const isLocalHost = ["localhost", "127.0.0.1", ""].includes(window.location.hostname);
   const isNodeServer = window.location.port === "5175";
@@ -69,7 +65,8 @@ function apiUrl(path) {
 async function api(path, options = {}) {
   const { admin = false, headers = {}, ...fetchOptions } = options;
   const response = await fetch(apiUrl(path), {
-    headers: { "Content-Type": "application/json", ...(admin ? adminHeaders() : {}), ...headers },
+    credentials: admin ? "include" : "same-origin",
+    headers: { "Content-Type": "application/json", ...headers },
     ...fetchOptions,
   });
   const data = await response.json().catch(() => ({}));
@@ -121,8 +118,8 @@ function hideBookingConfirmation() {
 
 function updateAdminStatus(message) {
   adminStatus.textContent =
-    message || (adminPin ? "Painel administrativo liberado neste navegador." : "Painel protegido. Apenas a profissional deve acessar a agenda completa.");
-  adminPinInput.value = adminPin ? "********" : "";
+    message || (adminAuthenticated ? "Painel administrativo liberado neste navegador." : "Painel protegido. Apenas a profissional deve acessar a agenda completa.");
+  adminPinInput.value = adminAuthenticated ? "********" : "";
 }
 
 function renderServices() {
@@ -252,7 +249,7 @@ function appointmentValue(appointment) {
 function renderAdminStats(items, selectedDate) {
   if (!adminStats) return;
 
-  if (!adminPin) {
+  if (!adminAuthenticated) {
     adminStats.innerHTML = "";
     return;
   }
@@ -285,10 +282,10 @@ function renderAdminStats(items, selectedDate) {
 }
 
 function renderAppointments() {
-  if (!adminPin) {
+  if (!adminAuthenticated) {
     appointments = [];
     renderAdminStats([], new Date().toISOString().slice(0, 10));
-    appointmentsList.innerHTML = '<div class="empty-state">Digite o PIN administrativo para ver a agenda completa.</div>';
+    appointmentsList.innerHTML = '<div class="empty-state">Digite a senha administrativa para ver a agenda completa.</div>';
     todayCount.textContent = "Painel protegido";
     return;
   }
@@ -359,7 +356,7 @@ function setInitialDate() {
 }
 
 async function loadAppointments() {
-  if (!adminPin) {
+  if (!adminAuthenticated) {
     renderAppointments();
     return;
   }
@@ -414,7 +411,7 @@ bookingForm.addEventListener("submit", async (event) => {
 
     resetBookingForm();
     await loadAvailability();
-    if (adminPin) {
+    if (adminAuthenticated) {
       await loadAppointments();
     }
     renderSummary();
@@ -473,33 +470,39 @@ appointmentsList.addEventListener("click", async (event) => {
 
 adminForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const typedPin = adminPinInput.value.trim();
+  const password = adminPinInput.value.trim();
 
-  if (!typedPin || typedPin === "********") {
-    updateAdminStatus("Digite o PIN administrativo para abrir o painel.");
+  if (!password || password === "********") {
+    updateAdminStatus("Digite a senha administrativa para abrir o painel.");
     return;
   }
 
-  adminPin = typedPin;
-  sessionStorage.setItem("adminPin", adminPin);
-
   try {
+    await api("/api/admin/login", {
+      method: "POST",
+      admin: true,
+      body: JSON.stringify({ password }),
+    });
+    adminAuthenticated = true;
     await loadAppointments();
     updateAdminStatus();
   } catch (error) {
-    adminPin = "";
-    sessionStorage.removeItem("adminPin");
+    adminAuthenticated = false;
     appointments = [];
     renderAppointments();
     updateAdminStatus(error.message);
   }
 });
 
-adminLockButton.addEventListener("click", () => {
-  adminPin = "";
+adminLockButton.addEventListener("click", async () => {
+  adminAuthenticated = false;
   editingAppointmentId = null;
-  sessionStorage.removeItem("adminPin");
   appointments = [];
+  try {
+    await api("/api/admin/logout", { method: "POST", admin: true });
+  } catch {
+    // The UI should still lock even if the logout request cannot complete.
+  }
   renderAppointments();
   updateAdminStatus("Painel bloqueado neste navegador.");
 });
@@ -549,6 +552,8 @@ async function init() {
     renderProfessionals();
     renderPaymentMethods();
     await loadAvailability();
+    const session = await api("/api/admin/session", { admin: true });
+    adminAuthenticated = Boolean(session.authenticated);
     updateAdminStatus();
     await loadAppointments();
     await loadReviews();
