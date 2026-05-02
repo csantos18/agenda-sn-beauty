@@ -203,16 +203,22 @@ function renderWeekPanel(selectedDate) {
       ${days
         .map(
           (day) => `
-            <article class="week-card ${day.date === selectedDate ? "selected" : ""}">
+            <button class="week-card ${day.date === selectedDate ? "selected" : ""}" type="button" data-week-date="${day.date}" aria-pressed="${day.date === selectedDate}">
               <span>${formatDate(day.date)}</span>
               <strong>${day.total} atendimento${day.total === 1 ? "" : "s"}</strong>
               <small>${day.pending} pendente${day.pending === 1 ? "" : "s"} | ${money(day.revenue)}</small>
-            </article>
+            </button>
           `,
         )
         .join("")}
     </div>
   `;
+}
+
+function selectWeekDate(date) {
+  adminDateInput.value = date;
+  renderAppointments();
+  appointmentsList.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function visibleAppointments() {
@@ -432,6 +438,11 @@ adminExportButton.addEventListener("click", () => {
 adminStatusFilter.addEventListener("change", renderAppointments);
 adminDateInput.addEventListener("change", renderAppointments);
 adminSearchInput.addEventListener("input", renderAppointments);
+adminWeekPanel.addEventListener("click", (event) => {
+  const dayButton = event.target.closest("button[data-week-date]");
+  if (!dayButton) return;
+  selectWeekDate(dayButton.dataset.weekDate);
+});
 cancelEditButton.addEventListener("click", closeEditPanel);
 
 [editServiceSelect, editProfessionalSelect, editDateInput].forEach((element) => {

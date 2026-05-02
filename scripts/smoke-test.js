@@ -59,6 +59,7 @@ function expectUiContracts() {
   record("admin search exists", adminHtml.includes('id="adminSearchInput"'), "adminSearchInput");
   record("admin week panel exists", adminHtml.includes('id="adminWeekPanel"'), "adminWeekPanel");
   record("admin search filters appointments", adminJs.includes("appointmentMatchesSearch"), "appointmentMatchesSearch");
+  record("week cards are clickable", adminJs.includes("data-week-date") && adminJs.includes("selectWeekDate"), "selectWeekDate");
 }
 
 async function checkGet(name, route) {

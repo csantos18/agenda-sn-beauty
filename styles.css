@@ -575,15 +575,29 @@ body > .app-message {
 }
 
 .week-card {
+  display: block;
+  width: 100%;
+  min-height: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 12px;
   background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  box-shadow: none;
 }
 
 .week-card.selected {
   border-color: rgba(142, 68, 173, 0.45);
   background: var(--soft);
+}
+
+.week-card:hover,
+.week-card:focus-visible {
+  border-color: rgba(142, 68, 173, 0.58);
+  background: #fff9fc;
+  outline: none;
 }
 
 .week-card span,
