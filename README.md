@@ -127,6 +127,10 @@ BASE_URL=https://agenda-sn-beauty.onrender.com npm run smoke
 - Segunda a sábado: 08:00 às 18:00.
 - Domingos e feriados: 08:00 às 14:00.
 - O sinal de 20% é combinado pelo WhatsApp; o app não processa pagamento online.
+- O pedido público começa como pendente e depende de confirmação da profissional.
+- Há tolerância de 10 minutos para atraso.
+- Cancelamentos e remarcações devem ser solicitados com antecedência, preferencialmente até 2 horas antes.
+- Faltas sem aviso podem causar perda do sinal e exigir confirmação antecipada em novos horários.
 - Status usados no painel: `pendente`, `confirmado`, `cancelado` e `concluido`.
 
 ## Persistência

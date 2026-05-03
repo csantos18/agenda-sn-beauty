@@ -49,6 +49,10 @@ Este projeto deve ser entregue como uma agenda real de atendimento, nao apenas c
 - Domingo e feriados: das 08:00 as 14:00.
 - O horario final do servico precisa caber dentro do expediente.
 - O sinal de reserva e sempre 20% do valor do servico.
+- O pedido publico comeca como pendente e depende de confirmacao da profissional.
+- A tolerancia de atraso e de 10 minutos.
+- Cancelamentos e remarcacoes devem ser solicitados com antecedencia, preferencialmente ate 2 horas antes.
+- Faltas sem aviso podem causar perda do sinal e exigir confirmacao antecipada em novos agendamentos.
 - Status validos: `pendente`, `confirmado`, `cancelado`, `concluido`.
 - Agendamentos cancelados nao bloqueiam novos horarios.
 - O painel deve permitir confirmar, cancelar, concluir, remarcar, exportar CSV e gerar backup JSON.
