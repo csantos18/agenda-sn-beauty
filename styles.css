@@ -159,7 +159,7 @@ a {
   display: inline-flex;
   width: 38px;
   height: 38px;
-  padding-top: 2px;
+  padding-top: 5px;
   align-items: center;
   place-items: center;
   justify-content: center;
@@ -172,6 +172,7 @@ a {
   line-height: 1;
   text-align: center;
   white-space: nowrap;
+  text-indent: -1px;
 }
 
 .hero {
