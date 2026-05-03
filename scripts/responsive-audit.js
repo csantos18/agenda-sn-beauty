@@ -22,6 +22,7 @@ const viewports = [
   { name: "tablet-wide", width: 900, height: 900 },
   { name: "tablet-landscape", width: 1024, height: 768 },
   { name: "small-desktop", width: 1180, height: 820 },
+  { name: "samsung-tablet-landscape", width: 1228, height: 768 },
   { name: "desktop", width: 1366, height: 900 },
 ];
 const structuralSelectors = [
