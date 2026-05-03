@@ -2,6 +2,21 @@
 
 Histórico de mudanças relevantes do Agenda SN Beauty.
 
+## 2026-05-03
+
+### Alterado
+
+- Refinado o alinhamento visual do selo `SN` no site publico, painel administrativo e pagina de termos, usando uma camada interna `brand-letters` para manter as letras centralizadas dentro do circulo.
+- Separado o comportamento do ambiente local para evitar uso acidental do `localhost` antigo quando o redirecionamento para producao estiver ativado.
+
+### Validado
+
+- `npm run check`
+- `npm run smoke`
+- `npm run visual:check`
+- `npm run responsive:audit`
+- Verificacao do online em `https://agenda-sn-beauty.onrender.com/api/health`, confirmando `storage: supabase`.
+
 ## 2026-05-02
 
 ### Adicionado
