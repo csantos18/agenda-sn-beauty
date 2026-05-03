@@ -52,7 +52,9 @@ Este projeto deve ser entregue como uma agenda real de atendimento, nao apenas c
 - O pedido publico comeca como pendente e depende de confirmacao da profissional.
 - A tolerancia de atraso e de 10 minutos.
 - Cancelamentos e remarcacoes devem ser solicitados com antecedencia, preferencialmente ate 2 horas antes.
+- Uma remarcacao solicitada dentro do prazo pode reaproveitar o mesmo sinal, conforme disponibilidade.
 - Faltas sem aviso podem causar perda do sinal e exigir confirmacao antecipada em novos agendamentos.
+- Cancelamento pelo salao deve permitir remarcacao ou combinacao de devolucao do sinal.
 - Status validos: `pendente`, `confirmado`, `cancelado`, `concluido`.
 - Agendamentos cancelados nao bloqueiam novos horarios.
 - O painel deve permitir confirmar, cancelar, concluir, remarcar, exportar CSV e gerar backup JSON.
