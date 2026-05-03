@@ -448,6 +448,30 @@ label {
   font-weight: 700;
 }
 
+.rules-acceptance {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--soft);
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.rules-acceptance input {
+  width: auto;
+  min-height: auto;
+  margin-top: 3px;
+}
+
+.rules-acceptance a {
+  color: var(--rose-dark);
+  font-weight: 900;
+  text-decoration: underline;
+}
+
 input,
 select,
 textarea {

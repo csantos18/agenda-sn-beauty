@@ -1063,6 +1063,12 @@ app.post("/api/appointments", PUBLIC_WRITE_LIMIT, async (req, res) => {
       notes: cleanString(req.body.notes, 250),
       status: "pendente",
     };
+
+    if (req.body.termsAccepted !== true) {
+      res.status(400).json({ error: "Aceite os termos e regras do agendamento antes de solicitar o horário." });
+      return;
+    }
+
     const error = validateAppointment(payload, db);
 
     if (error) {
@@ -1077,7 +1083,7 @@ app.post("/api/appointments", PUBLIC_WRITE_LIMIT, async (req, res) => {
       actor: "client",
       appointment,
       summary: `Novo pedido para ${payload.date} às ${payload.time}.`,
-      metadata: { serviceId: payload.serviceId, status: payload.status },
+      metadata: { serviceId: payload.serviceId, status: payload.status, termsAccepted: true },
     });
     await notifyAppointmentCreated(appointment, db.services);
     res.status(201).json(publicAppointment(appointment, db.services));

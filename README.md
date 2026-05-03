@@ -23,6 +23,7 @@ O projeto foi pensado para um salão pequeno operar com mais organização: a cl
 - Filtro por data, busca por cliente, status e visão semanal no painel.
 - Confirmação, conclusão, cancelamento e remarcação de atendimentos.
 - Consulta pública segura do próprio agendamento por telefone e data.
+- Aceite obrigatório dos termos e regras antes de criar o pedido.
 - Avaliações públicas com média, antispam simples e moderação administrativa.
 - Exportação CSV, backup JSON e auditoria administrativa.
 - Monitor de saúde com status de storage, Supabase, notificações e auditoria.

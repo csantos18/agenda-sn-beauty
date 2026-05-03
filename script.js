@@ -12,6 +12,7 @@ const dateInput = document.querySelector("#dateInput");
 const professionalSelect = document.querySelector("#professionalSelect");
 const paymentSelect = document.querySelector("#paymentSelect");
 const notesInput = document.querySelector("#notesInput");
+const termsAccepted = document.querySelector("#termsAccepted");
 const bookingSummary = document.querySelector("#bookingSummary");
 const bookingForm = document.querySelector("#bookingForm");
 const todayCount = document.querySelector("#todayCount");
@@ -378,6 +379,7 @@ bookingForm.addEventListener("submit", async (event) => {
     time: timeSelect.value,
     paymentMethod: paymentSelect.value,
     notes: notesInput.value.trim(),
+    termsAccepted: Boolean(termsAccepted?.checked),
   };
 
   try {

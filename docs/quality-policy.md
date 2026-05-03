@@ -6,6 +6,7 @@ Este projeto deve ser entregue como uma agenda real de atendimento, nao apenas c
 
 - A pagina `/termos` deve permanecer acessivel pelo site publico.
 - A cliente precisa ver, antes de agendar, que o sinal de reserva e de 20%.
+- O formulario publico deve exigir aceite dos termos e regras antes de criar agendamento.
 - O site nao deve prometer pagamento online quando o pagamento e combinado pelo WhatsApp.
 - Dados pessoais de cliente nao podem aparecer em consultas publicas alem do necessario para confirmar o proprio agendamento.
 - Arquivos internos do projeto, como `.env`, `database.json`, `server.js`, `package.json` e scripts, devem continuar bloqueados no navegador.

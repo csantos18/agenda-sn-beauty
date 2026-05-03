@@ -68,6 +68,7 @@ function expectUiContracts() {
   record("admin search filters appointments", adminJs.includes("appointmentMatchesSearch"), "appointmentMatchesSearch");
   record("week cards are clickable", adminJs.includes("data-week-date") && adminJs.includes("selectWeekDate"), "selectWeekDate");
   record("deposit rule visible", publicHtml.includes("20%") && publicJs.includes("DEPOSIT_RATE = 0.2"), "deposit 20%");
+  record("terms acceptance required", publicHtml.includes('id="termsAccepted"') && publicHtml.includes("required"), "termsAccepted");
   record("terms page linked", publicHtml.includes('href="/termos"'), "terms link");
   record("admin monitor exists", adminHtml.includes('id="adminMonitorPanel"') && adminJs.includes("/api/admin/monitor"), "monitor panel");
   record("admin audit exists", adminHtml.includes('id="adminAuditList"') && adminJs.includes("/api/admin/audit"), "audit panel");
@@ -296,6 +297,7 @@ function testPayload(serviceId, time = TEST_TIME) {
     professional: PROFESSIONAL,
     paymentMethod: "Pix",
     notes: "Teste automatizado de entrega",
+    termsAccepted: true,
     date: TEST_DATE,
     time,
   };
