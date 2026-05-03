@@ -318,16 +318,32 @@ function printResults() {
 }
 
 function tomorrowISO() {
-  const date = new Date();
-  date.setDate(date.getDate() + 1);
-  return date.toISOString().slice(0, 10);
+  return offsetLocalDateISO(1);
 }
 
 function nextWeekdayISO(day) {
-  const date = new Date();
+  const date = localNoon();
   const distance = (day - date.getDay() + 7) % 7 || 7;
   date.setDate(date.getDate() + distance);
-  return date.toISOString().slice(0, 10);
+  return localDateISO(date);
+}
+
+function offsetLocalDateISO(amount) {
+  const date = localNoon();
+  date.setDate(date.getDate() + amount);
+  return localDateISO(date);
+}
+
+function localNoon() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+}
+
+function localDateISO(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function loadLocalEnv() {

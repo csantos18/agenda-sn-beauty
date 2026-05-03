@@ -189,7 +189,6 @@ a {
 .hero::before {
   background: url("https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1600&q=80") center/cover;
   filter: grayscale(0.1) sepia(0.08) hue-rotate(255deg) saturate(0.9) brightness(1.12);
-  transform: scale(1.02);
 }
 
 .hero::after {
@@ -311,7 +310,7 @@ button:hover {
 
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 14px;
 }
 
@@ -361,7 +360,7 @@ button:hover {
 
 .lookup-form {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.45fr) auto;
+  grid-template-columns: minmax(min(220px, 100%), 1fr) minmax(min(180px, 100%), 0.45fr) auto;
   gap: 12px;
   align-items: end;
   border: 1px solid var(--line);
@@ -571,7 +570,7 @@ dd {
 
 .admin-panel {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(150px, 0.55fr) minmax(150px, 0.45fr) auto auto auto;
+  grid-template-columns: minmax(min(180px, 100%), 1fr) minmax(min(150px, 100%), 0.55fr) minmax(min(150px, 100%), 0.45fr) auto auto auto;
   gap: 12px;
   align-items: end;
   margin-bottom: 16px;
@@ -601,7 +600,7 @@ dd {
 
 .monitor-panel {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
   gap: 10px;
   margin-bottom: 16px;
 }
@@ -692,7 +691,7 @@ body > .app-message {
 
 .week-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr));
   gap: 10px;
 }
 
@@ -1130,7 +1129,7 @@ body > .app-message {
 
 .reviews-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 14px;
   margin-top: 18px;
 }
@@ -1150,6 +1149,35 @@ body > .app-message {
   margin: 0;
   color: var(--muted);
   line-height: 1.5;
+}
+
+@media (max-width: 1180px) {
+  .hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .hero-copy {
+    max-width: 760px;
+  }
+
+  .hero-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .services-grid,
+  .contact-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+  }
+
+  .admin-panel,
+  .admin-panel-dedicated {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .week-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 900px) {
@@ -1173,6 +1201,16 @@ body > .app-message {
 
   .hero {
     min-height: auto;
+  }
+
+  .admin-panel,
+  .admin-panel-dedicated {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-panel button,
+  .admin-panel-dedicated button {
+    width: 100%;
   }
 
   .services-grid,
@@ -1200,13 +1238,15 @@ body > .app-message {
   }
 
   .admin-topbar {
-    align-items: stretch;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
     padding: 12px 16px;
   }
 
   .admin-topbar .ghost-button {
-    width: 100%;
+    width: auto;
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
 
   .admin-shell {
@@ -1357,10 +1397,7 @@ body > .app-message {
   .reviews-list,
   .policy-grid,
   .privacy-grid,
-  .admin-stats,
-  .monitor-panel,
   .contact-grid,
-  .week-grid,
   .form-row,
   .lookup-form {
     grid-template-columns: 1fr;
@@ -1433,14 +1470,6 @@ body > .app-message {
     white-space: normal;
   }
 
-  .admin-panel {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-panel-dedicated {
-    grid-template-columns: 1fr;
-  }
-
   .appointment-actions {
     justify-items: stretch;
   }
@@ -1504,6 +1533,27 @@ body > .app-message {
 
   .floating-whatsapp {
     display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-panel,
+  .admin-panel-dedicated,
+  .admin-stats,
+  .monitor-panel,
+  .week-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .admin-topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-topbar .ghost-button {
+    width: 100%;
   }
 }
 

@@ -72,10 +72,19 @@ NOTIFICATION_WEBHOOK_URL=https://exemplo.com/webhook-de-agendamento
 
 ## Qualidade
 
+As regras completas de politica, responsividade, confiabilidade, seguranca, qualidade e negocio ficam em [`docs/quality-policy.md`](docs/quality-policy.md).
+
+```bash
+npm run quality
+```
+
+Esse comando sobe um servidor temporario para o smoke test e executa a auditoria completa:
+
 ```bash
 npm run check
 npm run smoke
 npm run mobile:check
+npm run responsive:audit
 npm run visual:check
 npm audit --omit=dev
 ```
@@ -89,6 +98,7 @@ Os testes cobrem:
 - Login administrativo, monitor, auditoria, avaliações, exportação CSV e backup JSON.
 - Bloqueio público de arquivos internos do projeto.
 - Layout mobile, ausência de overflow horizontal e console limpo no navegador.
+- Layout responsivo auditado em celular, tablet, tablet em paisagem, notebook e desktop.
 - Screenshots de validação em `artifacts/visual-check/`.
 
 Para testar uma URL publicada:

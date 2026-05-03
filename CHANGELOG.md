@@ -6,6 +6,10 @@ Histórico de mudanças relevantes do Agenda SN Beauty.
 
 ### Adicionado
 
+- Politica de qualidade em `docs/quality-policy.md`, cobrindo privacidade, responsividade, confiabilidade, seguranca, qualidade e regras de negocio.
+- Auditoria responsiva completa em `npm run responsive:audit`, com celular, tablet, tablet em paisagem, notebook e desktop.
+- Comando `npm run quality` para rodar a bateria principal de validacao com servidor temporario para o smoke test.
+
 - Confirmação pós-agendamento com protocolo, status e resumo do pedido.
 - Teste automatizado para impedir conflito parcial entre atendimentos.
 - Página administrativa dedicada em `/admin`, separada da página pública das clientes.
