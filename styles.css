@@ -100,7 +100,7 @@ a {
   display: block;
 }
 
-.admin-topbar span:not(.brand-mark) {
+.admin-topbar span:not(.brand-mark):not(.brand-letters) {
   color: var(--muted);
   font-size: 0.88rem;
 }
@@ -156,27 +156,27 @@ a {
 }
 
 .brand-mark {
-  display: inline-flex;
+  display: inline-block;
   width: 38px;
   height: 38px;
-  padding-top: 5px;
-  align-items: center;
-  place-items: center;
-  justify-content: center;
   border-radius: 50%;
   background: var(--ink);
   color: var(--white);
   font-family: Arial, Helvetica, sans-serif;
   font-size: 0.94rem;
   font-weight: 800;
-  line-height: 1;
+  line-height: 38px;
   text-align: center;
   white-space: nowrap;
-  text-indent: -1px;
 }
 
-.admin-topbar .brand-mark {
-  padding-top: 7px;
+.brand-letters {
+  display: inline-block;
+  transform: translate(-0.5px, 1px);
+}
+
+.admin-topbar .brand-letters {
+  transform: translate(-0.5px, 2px);
 }
 
 .hero {
@@ -1390,6 +1390,7 @@ body > .app-message {
     width: 34px;
     height: 34px;
     font-size: 0.82rem;
+    line-height: 34px;
   }
 
   .topbar nav {
