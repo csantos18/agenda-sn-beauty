@@ -18,6 +18,8 @@ const ADMIN_SESSION_SECRET = normalizeSecret(process.env.ADMIN_SESSION_SECRET) |
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const NOTIFICATION_WEBHOOK_URL = process.env.NOTIFICATION_WEBHOOK_URL;
+const PRODUCTION_ORIGIN = cleanEnvValue(process.env.PRODUCTION_ORIGIN) || "https://agenda-sn-beauty.onrender.com";
+const LOCAL_REDIRECT_TO_PRODUCTION = cleanEnvValue(process.env.LOCAL_REDIRECT_TO_PRODUCTION) === "true";
 const BUSINESS_TIME_ZONE = process.env.BUSINESS_TIME_ZONE || "America/Sao_Paulo";
 const supabase =
   SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
@@ -51,6 +53,7 @@ app.set("trust proxy", 1);
 app.use(localDevCors);
 app.use(securityHeaders);
 app.use(express.json({ limit: "20kb" }));
+app.use(redirectLocalToProduction);
 app.use(blockProjectFiles);
 app.use(
   express.static(__dirname, {
@@ -99,6 +102,15 @@ function loadLocalEnv() {
       process.env[key] = value;
     }
   }
+}
+
+function redirectLocalToProduction(req, res, next) {
+  if (!LOCAL_REDIRECT_TO_PRODUCTION || req.method !== "GET") return next();
+  if (!["localhost", "127.0.0.1"].includes(req.hostname)) return next();
+  if (req.path.startsWith("/api/health")) return next();
+
+  const target = new URL(req.originalUrl, PRODUCTION_ORIGIN);
+  res.redirect(302, target.toString());
 }
 
 function cleanEnvValue(value) {
