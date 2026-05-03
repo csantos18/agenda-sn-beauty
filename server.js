@@ -57,6 +57,7 @@ app.use(
     dotfiles: "deny",
     extensions: ["html"],
     index: "index.html",
+    setHeaders: setStaticCacheHeaders,
   }),
 );
 
@@ -415,6 +416,15 @@ function securityHeaders(req, res, next) {
     "default-src 'self'; img-src 'self' https://images.unsplash.com data:; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
   );
   next();
+}
+
+function setStaticCacheHeaders(res, filePath) {
+  const extension = path.extname(filePath).toLowerCase();
+  if ([".html", ".js", ".css"].includes(extension)) {
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+  }
 }
 
 function blockProjectFiles(req, res, next) {
