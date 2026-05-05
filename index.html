@@ -83,11 +83,12 @@
         <span class="brand-mark"><span class="brand-letters">SN</span></span>
         <strong>Sarah Neves Beauty Studio</strong>
       </div>
-      <nav aria-label="Navegação principal">
+      <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="mainNav" aria-label="Abrir menu">☰</button>
+      <nav id="mainNav" aria-label="Navegação principal">
         <a href="#agendar">Agendar</a>
         <a href="#consultar">Consultar</a>
+        <a href="#orientacoes">Orientações</a>
         <a href="#contato">Contato</a>
-        <a href="#maes">Dia das Mães</a>
         <a href="#avaliacoes">Avaliações</a>
         <a href="/termos">Termos</a>
       </nav>
@@ -228,6 +229,7 @@
             <div class="confirmation-details" id="confirmationDetails"></div>
             <p>O horário fica como pendente até a confirmação da profissional e o combinado do sinal de 20% pelo WhatsApp.</p>
             <a class="whatsapp-button" id="bookingWhatsAppLink" href="https://wa.me/5561981561421" target="_blank" rel="noopener">Enviar resumo no WhatsApp</a>
+            <button class="ghost-button copy-summary-button" id="copySummaryButton" type="button">Copiar resumo</button>
           </div>
         </aside>
       </section>
@@ -252,6 +254,7 @@
           <button type="submit">Consultar</button>
         </form>
         <div class="lookup-results" id="lookupResults" aria-live="polite"></div>
+        <a class="whatsapp-button lookup-help-button" href="https://wa.me/5561981561421" target="_blank" rel="noopener">Falar com o salão</a>
       </section>
 
       <section class="section policy-section" id="orientacoes">

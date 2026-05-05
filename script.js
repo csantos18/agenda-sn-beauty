@@ -28,6 +28,9 @@ const lookupPhone = document.querySelector("#lookupPhone");
 const lookupDate = document.querySelector("#lookupDate");
 const lookupResults = document.querySelector("#lookupResults");
 const appMessage = document.querySelector("#appMessage");
+const menuToggle = document.querySelector("#menuToggle");
+const mainNav = document.querySelector("#mainNav");
+const copySummaryButton = document.querySelector("#copySummaryButton");
 const LOCAL_API_ORIGIN = "http://localhost:5175";
 const SALON_WHATSAPP = "5561981561421";
 const BUSINESS_TIME_ZONE = "America/Sao_Paulo";
@@ -125,6 +128,17 @@ function trackBookingStartedOnce() {
   trackActivity("booking_started");
 }
 
+function setButtonLoading(button, loadingText) {
+  if (!button) return () => {};
+  const originalText = button.textContent;
+  button.disabled = true;
+  button.textContent = loadingText;
+  return () => {
+    button.disabled = false;
+    button.textContent = originalText;
+  };
+}
+
 function showMessage(message) {
   if (!appMessage) {
     alert(message);
@@ -188,10 +202,33 @@ function buildBookingWhatsAppUrl(appointment) {
   return `https://wa.me/${SALON_WHATSAPP}?text=${encodeURIComponent(message)}`;
 }
 
+function buildPlainBookingSummary(appointment) {
+  const service = services.find((item) => item.id === Number(appointment.serviceId));
+  const deposit = depositAmount(service);
+  return [
+    "Resumo do agendamento - Agenda SN Beauty",
+    appointment.id ? `Protocolo: #${appointment.id}` : "",
+    `Cliente: ${appointment.client}`,
+    `Telefone: ${appointment.phone}`,
+    `Serviço: ${service ? service.name : "Serviço selecionado"}`,
+    `Profissional: ${appointment.professional}`,
+    `Data: ${formatDate(appointment.date)}`,
+    `Horário: ${appointment.time}`,
+    `Status: ${statusLabel(appointment.status || "pendente")}`,
+    service ? `Valor: ${money(service.price)}` : "",
+    service ? `Sinal de 20%: ${money(deposit)}` : "",
+    service ? `Restante: ${money(service.price - deposit)}` : "",
+    "Confirmação final pelo WhatsApp do salão.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 function showBookingConfirmation(appointment) {
   if (!confirmationBox || !bookingWhatsAppLink) return;
 
   bookingWhatsAppLink.href = buildBookingWhatsAppUrl(appointment);
+  confirmationBox.dataset.summary = buildPlainBookingSummary(appointment);
   if (confirmationDetails) {
     const service = services.find((item) => item.id === Number(appointment.serviceId));
     const deposit = depositAmount(service);
@@ -397,6 +434,7 @@ function resetBookingForm() {
 
 bookingForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  const finishLoading = setButtonLoading(bookingForm.querySelector('button[type="submit"]'), "Enviando...");
 
   const payload = {
     client: document.querySelector("#clientName").value.trim(),
@@ -423,6 +461,8 @@ bookingForm.addEventListener("submit", async (event) => {
     renderSummary();
   } catch (error) {
     showMessage(error.message);
+  } finally {
+    finishLoading();
   }
 });
 
@@ -439,6 +479,7 @@ lookupPhone.addEventListener("input", (event) => {
 
 reviewForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  const finishLoading = setButtonLoading(reviewForm.querySelector('button[type="submit"]'), "Enviando...");
 
   try {
     await api("/api/reviews", {
@@ -455,6 +496,8 @@ reviewForm.addEventListener("submit", async (event) => {
     showMessage("Avaliação enviada com sucesso.");
   } catch (error) {
     showMessage(error.message);
+  } finally {
+    finishLoading();
   }
 });
 
@@ -482,6 +525,7 @@ function renderLookupResults(items) {
 
 lookupForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  const finishLoading = setButtonLoading(lookupForm.querySelector('button[type="submit"]'), "Consultando...");
 
   try {
     const params = new URLSearchParams({
@@ -492,6 +536,34 @@ lookupForm.addEventListener("submit", async (event) => {
     renderLookupResults(data.appointments || []);
   } catch (error) {
     lookupResults.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}</div>`;
+  } finally {
+    finishLoading();
+  }
+});
+
+copySummaryButton?.addEventListener("click", async () => {
+  const summary = confirmationBox?.dataset.summary || "";
+  if (!summary) return;
+
+  try {
+    await navigator.clipboard.writeText(summary);
+    showMessage("Resumo copiado.");
+  } catch {
+    showMessage("Não foi possível copiar automaticamente. Use o botão do WhatsApp.");
+  }
+});
+
+menuToggle?.addEventListener("click", () => {
+  const open = document.body.classList.toggle("nav-open");
+  menuToggle.setAttribute("aria-expanded", String(open));
+  menuToggle.setAttribute("aria-label", open ? "Fechar menu" : "Abrir menu");
+});
+
+mainNav?.addEventListener("click", (event) => {
+  if (event.target.closest("a")) {
+    document.body.classList.remove("nav-open");
+    menuToggle?.setAttribute("aria-expanded", "false");
+    menuToggle?.setAttribute("aria-label", "Abrir menu");
   }
 });
 

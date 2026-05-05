@@ -71,6 +71,21 @@ function expectUiContracts() {
   record("deposit rule visible", publicHtml.includes("20%") && publicJs.includes("DEPOSIT_RATE = 0.2"), "deposit 20%");
   record("terms acceptance required", publicHtml.includes('id="termsAccepted"') && publicHtml.includes("required"), "termsAccepted");
   record("terms page linked", publicHtml.includes('href="/termos"'), "terms link");
+  record(
+    "mobile hamburger exists",
+    publicHtml.includes('id="menuToggle"') && publicHtml.includes('id="mainNav"') && publicJs.includes("nav-open"),
+    "menuToggle",
+  );
+  record(
+    "client loading states exist",
+    publicJs.includes("setButtonLoading") && publicJs.includes("Enviando...") && publicJs.includes("Consultando..."),
+    "loading buttons",
+  );
+  record(
+    "copy booking summary exists",
+    publicHtml.includes('id="copySummaryButton"') && publicJs.includes("buildPlainBookingSummary"),
+    "copy summary",
+  );
   record("admin monitor exists", adminHtml.includes('id="adminMonitorPanel"') && adminJs.includes("/api/admin/monitor"), "monitor panel");
   record("admin audit exists", adminHtml.includes('id="adminAuditList"') && adminJs.includes("/api/admin/audit"), "audit panel");
   record("admin backup exists", adminHtml.includes('id="adminBackupButton"') && adminJs.includes("/api/admin/backup"), "backup button");

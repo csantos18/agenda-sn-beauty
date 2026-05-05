@@ -16,6 +16,7 @@ Este projeto deve ser entregue como uma agenda real de atendimento, nao apenas c
 - O layout deve funcionar sem estouro horizontal em celular, tablet, tablet em paisagem, notebook e desktop.
 - Breakpoints de referencia: ate 768px para celular, 769px a 1024px para tablet e acima de 1024px para desktop.
 - Caso a navegacao principal fique extensa no mobile, deve ser adotado menu hamburguer ou solucao equivalente acessivel.
+- O menu mobile deve ter botao acessivel com estado `aria-expanded` e nao pode causar estouro horizontal.
 - A regra de responsividade vale para o site publico, painel administrativo e pagina de termos.
 - Grades devem preferir colunas fluidas (`auto-fit`, `minmax` e limites relativos) em vez de larguras rigidas.
 - Textos de botoes, cards, menus e filtros nao podem ficar cortados.
@@ -48,6 +49,7 @@ Este projeto deve ser entregue como uma agenda real de atendimento, nao apenas c
 - Acentos e textos em portugues devem ser mantidos legiveis no navegador.
 - Dados estruturados de SEO local no `index.html` devem continuar validos e coerentes com telefone, endereco, horarios e catalogo de servicos.
 - Mudancas em notificacoes, visitas ou auditoria devem manter o painel administrativo legivel e passar no smoke test.
+- Fluxos de envio devem ter estado visual de carregamento para evitar duplo clique e reduzir duvida da cliente.
 - Artefatos gerados em `artifacts/` sao apenas evidencias de teste e nao devem virar dependencia do app.
 
 ## Regras de negocio

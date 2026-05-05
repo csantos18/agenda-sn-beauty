@@ -85,6 +85,8 @@ Principais ganhos:
 - Auditoria administrativa.
 - Registro de visitas e eventos importantes do funil.
 - Notificacao por webhook para inicio de agendamento, novo agendamento e nova avaliacao quando configurado.
+- Menu hamburguer acessivel no mobile.
+- Confirmacao pos-agendamento com protocolo, resumo, WhatsApp e copia do resumo.
 - Termos e privacidade.
 - SEO local com dados estruturados Schema.org para salao de beleza, endereco, WhatsApp, horarios e catalogo de servicos.
 - Persistencia em Supabase ou arquivo local.
@@ -157,6 +159,14 @@ O sistema deve registrar visitas simples e inicio de preenchimento do agendament
 ### RF14 - Notificar eventos importantes
 
 O sistema deve permitir notificacao externa por webhook para eventos relevantes, como inicio de agendamento, novo agendamento e nova avaliacao, sem disparar alerta para toda visita simples.
+
+### RF15 - Melhorar pos-agendamento
+
+O sistema deve exibir protocolo, status, resumo, sinal de 20%, link de WhatsApp e opcao de copiar o resumo apos o envio do pedido.
+
+### RF16 - Navegacao mobile
+
+O sistema deve oferecer menu hamburguer acessivel no mobile quando a navegacao principal nao couber confortavelmente na largura da tela.
 
 ## 8. Requisitos Nao Funcionais
 
@@ -253,6 +263,9 @@ O site deve expor dados estruturados para mecanismos de busca, incluindo nome do
 - A pagina de termos permanece acessivel.
 - O layout funciona em celular, tablet e desktop.
 - A responsividade considera celular ate 768px, tablet de 769px a 1024px e desktop acima de 1024px.
+- O mobile possui menu hamburguer acessivel e sem estouro horizontal.
+- O envio de agendamento, consulta e avaliacao exibe estado de carregamento.
+- A confirmacao do agendamento mostra protocolo, resumo, WhatsApp e copia do resumo.
 - O admin consegue ver visitas e inicio de agendamento na auditoria.
 - Eventos importantes podem acionar webhook quando a variavel de ambiente estiver configurada.
 - O HTML contem dados estruturados Schema.org do tipo `BeautySalon`.

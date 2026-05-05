@@ -30,6 +30,8 @@ O documento central de produto fica em [`docs/PRD.md`](docs/PRD.md). Ele descrev
 - Avaliações públicas com média, antispam simples e moderação administrativa.
 - Registro de visitas, início de agendamento e avaliações na auditoria administrativa.
 - Notificação por webhook para ações importantes quando `NOTIFICATION_WEBHOOK_URL` estiver configurado.
+- Menu hambúrguer no mobile e navegação adaptada para telas até 768px.
+- Confirmação pós-agendamento com protocolo, resumo, WhatsApp e opção de copiar dados.
 - Exportação CSV, backup JSON e auditoria administrativa.
 - Monitor de saúde com status de storage, Supabase, notificações e auditoria.
 - Página formal de termos e privacidade.

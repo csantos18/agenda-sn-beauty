@@ -72,6 +72,15 @@ a {
   font-size: 0.95rem;
 }
 
+.menu-toggle {
+  display: none;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 1.2rem;
+}
+
 .admin-page {
   background: #f7f6f8;
 }
@@ -265,6 +274,11 @@ button:hover {
   background: var(--rose-dark);
 }
 
+button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 .hero-panel {
   display: grid;
   gap: 12px;
@@ -393,6 +407,10 @@ button:hover {
   margin-top: 14px;
 }
 
+.lookup-help-button {
+  margin-top: 14px;
+}
+
 .lookup-card {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -437,6 +455,10 @@ button:hover {
 
 .confirmation-details span {
   display: block;
+}
+
+.copy-summary-button {
+  margin-top: 10px;
 }
 
 label {
@@ -1365,8 +1387,9 @@ body > .app-message {
   }
 
   .topbar {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 10px;
     padding: 12px 16px;
     position: sticky;
@@ -1399,9 +1422,15 @@ body > .app-message {
   }
 
   .topbar > div {
-    width: 100%;
+    width: auto;
+    flex: 1 1 min(230px, calc(100% - 58px));
     min-width: 0;
     gap: 10px;
+  }
+
+  .menu-toggle {
+    display: inline-flex;
+    flex: 0 0 44px;
   }
 
   .topbar strong {
@@ -1421,26 +1450,25 @@ body > .app-message {
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
+    display: none;
+    grid-template-columns: 1fr;
     gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 2px;
+    padding-top: 6px;
     font-size: 0.88rem;
     line-height: 1.2;
-    scrollbar-width: none;
   }
 
-  .topbar nav::-webkit-scrollbar {
-    display: none;
+  .nav-open .topbar nav {
+    display: grid;
   }
 
   .topbar nav a {
-    flex: 0 0 auto;
+    width: 100%;
     border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 7px 10px;
+    border-radius: 8px;
+    padding: 10px 12px;
     background: rgba(255, 255, 255, 0.72);
+    font-weight: 800;
   }
 
   .hero {
@@ -1483,7 +1511,7 @@ body > .app-message {
   }
 
   .primary-action,
-  button {
+  button:not(.menu-toggle) {
     width: 100%;
   }
 
@@ -1576,7 +1604,8 @@ body > .app-message {
   .booking-form,
   .summary-panel,
   .review-form,
-  .rating-panel {
+  .rating-panel,
+  .lookup-help-button {
     padding: 16px;
   }
 
