@@ -28,6 +28,7 @@ Este projeto deve ser entregue como uma agenda real de atendimento, não apenas 
 - Horários ocupados devem sair da disponibilidade pública.
 - A consulta da cliente deve encontrar o pedido pelo telefone e data sem expor dados privados.
 - O painel administrativo deve exigir login e manter as rotas administrativas protegidas.
+- A persistência deve funcionar com Supabase em produção e `database.json` como fallback local.
 - O smoke test obrigatório é `npm run smoke`.
 
 ## Segurança
@@ -56,7 +57,7 @@ Este projeto deve ser entregue como uma agenda real de atendimento, não apenas 
 ## Regras de negócio
 
 - Atendimento regular: segunda a sábado, das 08:00 às 18:00.
-- Domingo e feriados: das 08:00 às 14:00.
+- Domingos e feriados: das 08:00 às 14:00.
 - O horário final do serviço precisa caber dentro do expediente.
 - O sinal de reserva é sempre 20% do valor do serviço.
 - O pedido público começa como pendente e depende de confirmação da profissional.
