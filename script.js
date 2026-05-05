@@ -97,6 +97,34 @@ async function api(path, options = {}) {
   return data;
 }
 
+function trackActivity(type) {
+  const payload = JSON.stringify({
+    type,
+    path: window.location.pathname || "/",
+    source: "public-site",
+  });
+
+  if (navigator.sendBeacon) {
+    const blob = new Blob([payload], { type: "application/json" });
+    navigator.sendBeacon(apiUrl("/api/activity"), blob);
+    return;
+  }
+
+  fetch(apiUrl("/api/activity"), {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: payload,
+    keepalive: true,
+  }).catch(() => {});
+}
+
+function trackBookingStartedOnce() {
+  if (trackBookingStartedOnce.done) return;
+  trackBookingStartedOnce.done = true;
+  trackActivity("booking_started");
+}
+
 function showMessage(message) {
   if (!appMessage) {
     alert(message);
@@ -398,6 +426,9 @@ bookingForm.addEventListener("submit", async (event) => {
   }
 });
 
+bookingForm.addEventListener("input", trackBookingStartedOnce, { once: true });
+bookingForm.addEventListener("change", trackBookingStartedOnce, { once: true });
+
 document.querySelector("#clientPhone").addEventListener("input", (event) => {
   event.target.value = formatPhone(event.target.value);
 });
@@ -496,5 +527,6 @@ async function init() {
 }
 
 init();
+trackActivity("site_visit");
 
 

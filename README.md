@@ -28,6 +28,8 @@ O documento central de produto fica em [`docs/PRD.md`](docs/PRD.md). Ele descrev
 - Consulta pública segura do próprio agendamento por telefone e data.
 - Aceite obrigatório dos termos e regras antes de criar o pedido.
 - Avaliações públicas com média, antispam simples e moderação administrativa.
+- Registro de visitas, início de agendamento e avaliações na auditoria administrativa.
+- Notificação por webhook para ações importantes quando `NOTIFICATION_WEBHOOK_URL` estiver configurado.
 - Exportação CSV, backup JSON e auditoria administrativa.
 - Monitor de saúde com status de storage, Supabase, notificações e auditoria.
 - Página formal de termos e privacidade.

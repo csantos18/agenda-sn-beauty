@@ -83,6 +83,8 @@ Principais ganhos:
 - Backup JSON.
 - Monitor de saude.
 - Auditoria administrativa.
+- Registro de visitas e eventos importantes do funil.
+- Notificacao por webhook para inicio de agendamento, novo agendamento e nova avaliacao quando configurado.
 - Termos e privacidade.
 - SEO local com dados estruturados Schema.org para salao de beleza, endereco, WhatsApp, horarios e catalogo de servicos.
 - Persistencia em Supabase ou arquivo local.
@@ -148,6 +150,14 @@ O administrador deve conseguir exportar CSV e gerar backup JSON.
 
 O sistema deve possuir rota de saude para verificar storage, Supabase, notificacoes e auditoria.
 
+### RF13 - Registrar atividade do site
+
+O sistema deve registrar visitas simples e inicio de preenchimento do agendamento para apoiar acompanhamento administrativo.
+
+### RF14 - Notificar eventos importantes
+
+O sistema deve permitir notificacao externa por webhook para eventos relevantes, como inicio de agendamento, novo agendamento e nova avaliacao, sem disparar alerta para toda visita simples.
+
 ## 8. Requisitos Nao Funcionais
 
 ### RNF01 - Responsividade
@@ -169,6 +179,8 @@ O sistema deve proteger area administrativa, cookies, arquivos internos e dados 
 ### RNF03 - Privacidade
 
 Dados pessoais nao devem aparecer em consultas publicas alem do necessario.
+
+O rastreamento de atividade deve evitar dados pessoais quando o evento nao exigir identificacao.
 
 ### RNF04 - Confiabilidade
 
@@ -198,6 +210,8 @@ O site deve expor dados estruturados para mecanismos de busca, incluindo nome do
 - Status validos: `pendente`, `confirmado`, `cancelado`, `concluido`.
 - Agendamentos cancelados nao bloqueiam novos horarios.
 - Backup, exportacao, monitoramento e auditoria exigem login administrativo.
+- Visita simples deve ser registrada apenas como evento de acompanhamento, sem notificacao externa obrigatoria.
+- Inicio de agendamento, novo agendamento e nova avaliacao podem gerar notificacao externa quando houver webhook configurado.
 
 ## 10. Fluxos Principais
 
@@ -239,6 +253,8 @@ O site deve expor dados estruturados para mecanismos de busca, incluindo nome do
 - A pagina de termos permanece acessivel.
 - O layout funciona em celular, tablet e desktop.
 - A responsividade considera celular ate 768px, tablet de 769px a 1024px e desktop acima de 1024px.
+- O admin consegue ver visitas e inicio de agendamento na auditoria.
+- Eventos importantes podem acionar webhook quando a variavel de ambiente estiver configurada.
 - O HTML contem dados estruturados Schema.org do tipo `BeautySalon`.
 - O telefone, endereco, horario e catalogo de servicos aparecem nos dados estruturados.
 - Testes de qualidade passam antes da entrega.

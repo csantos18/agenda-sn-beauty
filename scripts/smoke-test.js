@@ -22,6 +22,7 @@ async function main() {
   await checkJson("professionals", "/api/professionals");
   await checkJson("payment methods", "/api/payment-methods");
   await checkJson("reviews", "/api/reviews");
+  await expectPublicActivityRecorded();
   await expectAdminRouteProtected();
 
   const service = Array.isArray(services) ? services[0] : null;
@@ -74,6 +75,11 @@ function expectUiContracts() {
   record("admin audit exists", adminHtml.includes('id="adminAuditList"') && adminJs.includes("/api/admin/audit"), "audit panel");
   record("admin backup exists", adminHtml.includes('id="adminBackupButton"') && adminJs.includes("/api/admin/backup"), "backup button");
   record("admin reviews exists", adminHtml.includes('id="adminReviewsList"') && adminJs.includes("/api/admin/reviews"), "reviews moderation");
+  record(
+    "public activity tracking exists",
+    publicJs.includes("/api/activity") && adminJs.includes("booking_started") && adminJs.includes("site_visit"),
+    "activity audit",
+  );
 }
 
 async function checkGet(name, route) {
@@ -92,6 +98,14 @@ async function checkJson(name, route) {
 async function expectAdminRouteProtected() {
   const response = await request("/api/appointments");
   record("admin route blocks public access", response.status === 401, `status=${response.status}`);
+}
+
+async function expectPublicActivityRecorded() {
+  const response = await request("/api/activity", {
+    method: "POST",
+    body: JSON.stringify({ type: "booking_started", path: "/", source: "smoke-test" }),
+  });
+  record("public activity recorded", response.status === 202, `status=${response.status}`);
 }
 
 async function expectProjectFilesBlocked() {

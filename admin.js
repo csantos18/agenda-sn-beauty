@@ -1,4 +1,4 @@
-let services = [];
+﻿let services = [];
 let professionals = [];
 let paymentMethods = [];
 let appointments = [];
@@ -118,10 +118,12 @@ function actionLabel(action) {
     appointment_created: "Novo pedido recebido",
     appointment_deleted: "Agendamento removido",
     appointment_rescheduled: "Agendamento remarcado",
+    booking_started: "Cliente iniciou agendamento",
     notification_failed: "Notificação falhou",
     notification_sent: "Notificação enviada",
     review_deleted: "Avaliação removida",
     review_created: "Nova avaliação",
+    site_visit: "Visita no site",
   };
   return labels[action] || action;
 }
@@ -698,3 +700,4 @@ async function init() {
 }
 
 init();
+

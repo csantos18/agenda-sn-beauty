@@ -36,6 +36,8 @@ Este projeto deve ser entregue como uma agenda real de atendimento, nao apenas c
 - Operacoes administrativas devem exigir sessao valida.
 - Entradas de cliente devem ser sanitizadas antes de serem renderizadas na tela.
 - O servidor deve manter headers de seguranca e bloqueio de arquivos de projeto.
+- Atividades publicas devem ser registradas sem expor dados sensiveis desnecessarios.
+- Notificacoes externas devem ser usadas apenas para eventos importantes, evitando alerta para cada visita simples.
 
 ## Qualidade
 
@@ -45,6 +47,7 @@ Este projeto deve ser entregue como uma agenda real de atendimento, nao apenas c
 - Mudancas em regras de agenda devem passar em `npm run smoke`.
 - Acentos e textos em portugues devem ser mantidos legiveis no navegador.
 - Dados estruturados de SEO local no `index.html` devem continuar validos e coerentes com telefone, endereco, horarios e catalogo de servicos.
+- Mudancas em notificacoes, visitas ou auditoria devem manter o painel administrativo legivel e passar no smoke test.
 - Artefatos gerados em `artifacts/` sao apenas evidencias de teste e nao devem virar dependencia do app.
 
 ## Regras de negocio

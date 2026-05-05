@@ -30,11 +30,14 @@ const supabase =
 const PUBLIC_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 25 });
 const PUBLIC_LOOKUP_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
 const REVIEW_WRITE_LIMIT = createRateLimit({ windowMs: 60 * 60 * 1000, max: 6 });
+const PUBLIC_ACTIVITY_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
 const ADMIN_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 80 });
 const ADMIN_LOGIN_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 12 });
 const ADMIN_SESSION_COOKIE = "sn_admin_session";
 const ADMIN_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
 const AUDIT_LOG_LIMIT = 200;
+const IMPORTANT_NOTIFICATION_TYPES = new Set(["booking_started", "appointment_created", "review_created", "system_error"]);
+const PUBLIC_ACTIVITY_TYPES = new Set(["site_visit", "booking_started"]);
 let mutationQueue = Promise.resolve();
 let localAuditLogs = [];
 
@@ -780,6 +783,52 @@ function appointmentNotificationPayload(appointment, services) {
   };
 }
 
+function notificationPayload(type, title, summary, metadata = {}) {
+  return {
+    type,
+    title,
+    summary,
+    app: "Agenda SN Beauty",
+    createdAt: new Date().toISOString(),
+    metadata,
+  };
+}
+
+async function notifyImportantActivity(type, title, summary, metadata = {}) {
+  if (!NOTIFICATION_WEBHOOK_URL || !IMPORTANT_NOTIFICATION_TYPES.has(type)) return;
+
+  try {
+    const response = await fetch(NOTIFICATION_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(notificationPayload(type, title, summary, metadata)),
+    });
+
+    if (!response.ok) {
+      console.warn(`Falha ao enviar notificação de atividade: ${response.status}`);
+      await recordAudit("notification_failed", {
+        actor: "system",
+        summary: `Falha ao notificar atividade: ${summary}`,
+        metadata: { type, status: response.status },
+      });
+      return;
+    }
+
+    await recordAudit("notification_sent", {
+      actor: "system",
+      summary: `Notificação enviada: ${summary}`,
+      metadata: { type },
+    });
+  } catch (error) {
+    console.warn(`Falha ao enviar notificação de atividade: ${error.message}`);
+    await recordAudit("notification_failed", {
+      actor: "system",
+      summary: `Falha ao notificar atividade: ${summary}`,
+      metadata: { type, message: cleanString(error.message, 120) },
+    });
+  }
+}
+
 async function notifyAppointmentCreated(appointment, services) {
   if (!NOTIFICATION_WEBHOOK_URL) return;
 
@@ -944,6 +993,36 @@ app.get("/api/professionals", async (req, res) => {
 
 app.get("/api/payment-methods", (req, res) => {
   res.json(paymentMethods);
+});
+
+app.post("/api/activity", PUBLIC_ACTIVITY_LIMIT, async (req, res) => {
+  const type = cleanString(req.body.type, 40);
+
+  if (!PUBLIC_ACTIVITY_TYPES.has(type)) {
+    res.status(400).json({ error: "Atividade inválida." });
+    return;
+  }
+
+  const metadata = {
+    path: cleanString(req.body.path || "/", 120),
+    source: cleanString(req.body.source || "public-site", 40),
+  };
+  const summary =
+    type === "booking_started"
+      ? "Cliente iniciou o preenchimento do agendamento."
+      : "Visitante acessou o site público.";
+
+  await recordAudit(type, {
+    actor: "visitor",
+    summary,
+    metadata,
+  });
+
+  if (type === "booking_started") {
+    await notifyImportantActivity(type, "Cliente iniciou agendamento", summary, metadata);
+  }
+
+  res.status(202).json({ recorded: true });
 });
 
 app.get("/api/availability", async (req, res) => {
@@ -1299,6 +1378,9 @@ app.post("/api/reviews", REVIEW_WRITE_LIMIT, async (req, res) => {
     actor: "client",
     summary: `Nova avaliação pública com nota ${rating}.`,
     metadata: { rating },
+  });
+  await notifyImportantActivity("review_created", "Nova avaliação recebida", `Nova avaliação pública com nota ${rating}.`, {
+    rating,
   });
   res.status(201).json(review);
 });
