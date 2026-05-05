@@ -9,6 +9,8 @@ Aplicativo de agendamento para o **Sarah Neves Beauty Studio**, com experiência
 
 O projeto foi pensado para um salão pequeno operar com mais organização: a cliente escolhe serviço, profissional, data, horário e forma de pagamento; a profissional acompanha pedidos, status, remarcações, avaliações, exportações e auditoria em uma área reservada.
 
+O documento central de produto fica em [`docs/PRD.md`](docs/PRD.md). Ele descreve problema, público-alvo, requisitos, regras de negócio, critérios de aceite, riscos e roadmap.
+
 ## Preview
 
 | Site público | Mobile | Painel administrativo |
@@ -18,6 +20,7 @@ O projeto foi pensado para um salão pequeno operar com mais organização: a cl
 ## Destaques
 
 - Agendamento com validação de conflito por duração real do serviço.
+- SEO local com dados estruturados Schema.org para salão de beleza, endereço, WhatsApp, horários e serviços.
 - Catálogo de serviços com preço, duração, descrição e regra de sinal de 20%.
 - Painel administrativo com login, cookie HTTP-only e sessão assinada.
 - Filtro por data, busca por cliente, status e visão semanal no painel.

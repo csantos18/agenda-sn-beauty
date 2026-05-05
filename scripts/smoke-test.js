@@ -199,7 +199,7 @@ async function loginAdmin() {
     method: "POST",
     body: JSON.stringify({ password: ADMIN_PIN }),
   });
-  const cookie = response.headers.get("set-cookie") || "";
+  const cookie = sessionCookieFrom(response.headers.get("set-cookie") || "");
   record("admin login", response.ok && cookie.includes("sn_admin_session="), `status=${response.status}`);
   return cookie;
 }
@@ -366,6 +366,10 @@ function loadLocalEnv() {
 
 function cleanEnvValue(value) {
   return typeof value === "string" ? value.trim() : value;
+}
+
+function sessionCookieFrom(setCookieHeader) {
+  return String(setCookieHeader).split(";")[0];
 }
 
 main().catch((error) => {

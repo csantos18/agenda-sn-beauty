@@ -14,6 +14,8 @@ Este projeto deve ser entregue como uma agenda real de atendimento, nao apenas c
 ## Responsividade
 
 - O layout deve funcionar sem estouro horizontal em celular, tablet, tablet em paisagem, notebook e desktop.
+- Breakpoints de referencia: ate 768px para celular, 769px a 1024px para tablet e acima de 1024px para desktop.
+- Caso a navegacao principal fique extensa no mobile, deve ser adotado menu hamburguer ou solucao equivalente acessivel.
 - A regra de responsividade vale para o site publico, painel administrativo e pagina de termos.
 - Grades devem preferir colunas fluidas (`auto-fit`, `minmax` e limites relativos) em vez de larguras rigidas.
 - Textos de botoes, cards, menus e filtros nao podem ficar cortados.
@@ -42,6 +44,7 @@ Este projeto deve ser entregue como uma agenda real de atendimento, nao apenas c
 - Toda mudanca visual deve passar em `npm run visual:check` e `npm run responsive:audit`.
 - Mudancas em regras de agenda devem passar em `npm run smoke`.
 - Acentos e textos em portugues devem ser mantidos legiveis no navegador.
+- Dados estruturados de SEO local no `index.html` devem continuar validos e coerentes com telefone, endereco, horarios e catalogo de servicos.
 - Artefatos gerados em `artifacts/` sao apenas evidencias de teste e nao devem virar dependencia do app.
 
 ## Regras de negocio
