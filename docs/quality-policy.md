@@ -1,69 +1,70 @@
-# Politica de qualidade do Agenda SN Beauty
+# Política de qualidade do Agenda SN Beauty
 
-Este projeto deve ser entregue como uma agenda real de atendimento, nao apenas como uma tela demonstrativa. Toda alteracao precisa preservar as regras abaixo.
+Este projeto deve ser entregue como uma agenda real de atendimento, não apenas como uma tela demonstrativa. Toda alteração precisa preservar as regras abaixo.
 
-## Politica e privacidade
+## Política e privacidade
 
-- A pagina `/termos` deve permanecer acessivel pelo site publico.
-- A cliente precisa ver, antes de agendar, que o sinal de reserva e de 20%.
-- O formulario publico deve exigir aceite dos termos e regras antes de criar agendamento.
-- O site nao deve prometer pagamento online quando o pagamento e combinado pelo WhatsApp.
-- Dados pessoais de cliente nao podem aparecer em consultas publicas alem do necessario para confirmar o proprio agendamento.
+- A página `/termos` deve permanecer acessível pelo site público.
+- A cliente precisa ver, antes de agendar, que o sinal de reserva é de 20%.
+- O formulário público deve exigir aceite dos termos e regras antes de criar agendamento.
+- O site não deve prometer pagamento online quando o pagamento é combinado pelo WhatsApp.
+- Dados pessoais de cliente não podem aparecer em consultas públicas além do necessário para confirmar o próprio agendamento.
 - Arquivos internos do projeto, como `.env`, `database.json`, `server.js`, `package.json` e scripts, devem continuar bloqueados no navegador.
 
 ## Responsividade
 
 - O layout deve funcionar sem estouro horizontal em celular, tablet, tablet em paisagem, notebook e desktop.
-- Breakpoints de referencia: ate 768px para celular, 769px a 1024px para tablet e acima de 1024px para desktop.
-- Caso a navegacao principal fique extensa no mobile, deve ser adotado menu hamburguer ou solucao equivalente acessivel.
-- O menu mobile deve ter botao acessivel com estado `aria-expanded` e nao pode causar estouro horizontal.
-- A regra de responsividade vale para o site publico, painel administrativo e pagina de termos.
-- Grades devem preferir colunas fluidas (`auto-fit`, `minmax` e limites relativos) em vez de larguras rigidas.
-- Textos de botoes, cards, menus e filtros nao podem ficar cortados.
-- A auditoria obrigatoria e `npm run responsive:audit`.
+- Breakpoints de referência: até 768px para celular, 769px a 1024px para tablet e acima de 1024px para desktop.
+- A regra de responsividade vale para o site público, painel administrativo e página de termos.
+- Caso a navegação principal fique extensa no mobile, deve ser adotado menu hambúrguer ou solução equivalente acessível.
+- O menu mobile deve ter botão acessível com estado `aria-expanded` e não pode causar estouro horizontal.
+- Grades devem preferir colunas fluidas (`auto-fit`, `minmax` e limites relativos) em vez de larguras rígidas.
+- Textos de botões, cards, menus e filtros não podem ficar cortados.
+- A auditoria obrigatória é `npm run responsive:audit`.
 
 ## Confiabilidade
 
 - O sistema deve impedir dois agendamentos conflitantes para a mesma profissional.
-- Horarios ocupados devem sair da disponibilidade publica.
+- Horários ocupados devem sair da disponibilidade pública.
 - A consulta da cliente deve encontrar o pedido pelo telefone e data sem expor dados privados.
 - O painel administrativo deve exigir login e manter as rotas administrativas protegidas.
-- O smoke test obrigatorio e `npm run smoke`.
+- O smoke test obrigatório é `npm run smoke`.
 
-## Seguranca
+## Segurança
 
 - A senha administrativa deve vir de `ADMIN_PIN`.
-- A sessao administrativa deve usar cookie `HttpOnly`.
-- Operacoes administrativas devem exigir sessao valida.
+- A sessão administrativa deve usar cookie `HttpOnly`.
+- Operações administrativas devem exigir sessão válida.
 - Entradas de cliente devem ser sanitizadas antes de serem renderizadas na tela.
-- O servidor deve manter headers de seguranca e bloqueio de arquivos de projeto.
-- Atividades publicas devem ser registradas sem expor dados sensiveis desnecessarios.
-- Notificacoes externas devem ser usadas apenas para eventos importantes, evitando alerta para cada visita simples.
+- O servidor deve manter headers de segurança e bloqueio de arquivos de projeto.
+- Atividades públicas devem ser registradas sem expor dados sensíveis desnecessários.
+- Notificações externas devem ser usadas apenas para eventos importantes, evitando alerta para cada visita simples.
 
 ## Qualidade
 
-- Toda mudanca deve passar em `npm run quality` antes de entrega.
-- Toda mudanca de codigo deve passar em `npm run check`.
-- Toda mudanca visual deve passar em `npm run visual:check` e `npm run responsive:audit`.
-- Mudancas em regras de agenda devem passar em `npm run smoke`.
-- Acentos e textos em portugues devem ser mantidos legiveis no navegador.
-- Dados estruturados de SEO local no `index.html` devem continuar validos e coerentes com telefone, endereco, horarios e catalogo de servicos.
-- Mudancas em notificacoes, visitas ou auditoria devem manter o painel administrativo legivel e passar no smoke test.
-- Fluxos de envio devem ter estado visual de carregamento para evitar duplo clique e reduzir duvida da cliente.
-- Artefatos gerados em `artifacts/` sao apenas evidencias de teste e nao devem virar dependencia do app.
+- Toda mudança deve passar em `npm run quality` antes de entrega.
+- Toda mudança de código deve passar em `npm run check`.
+- Toda mudança visual deve passar em `npm run visual:check` e `npm run responsive:audit`.
+- Mudanças em regras de agenda devem passar em `npm run smoke`.
+- Acentos e textos em português devem ser mantidos legíveis no navegador.
+- Dados estruturados de SEO local no `index.html` devem continuar válidos e coerentes com telefone, endereço, horários e catálogo de serviços.
+- Mudanças em notificações, visitas ou auditoria devem manter o painel administrativo legível e passar no smoke test.
+- Fluxos de envio devem ter estado visual de carregamento para evitar duplo clique e reduzir dúvida da cliente.
+- Artefatos gerados em `artifacts/` são apenas evidências de teste e não devem virar dependência do app.
+- Imagens de portfólio em `docs/demo/` devem ser estáticas, leves e revisadas antes de entrarem no README.
 
-## Regras de negocio
+## Regras de negócio
 
-- Atendimento regular: segunda a sabado, das 08:00 as 18:00.
-- Domingo e feriados: das 08:00 as 14:00.
-- O horario final do servico precisa caber dentro do expediente.
-- O sinal de reserva e sempre 20% do valor do servico.
-- O pedido publico comeca como pendente e depende de confirmacao da profissional.
-- A tolerancia de atraso e de 10 minutos.
-- Cancelamentos e remarcacoes devem ser solicitados com antecedencia, preferencialmente ate 2 horas antes.
-- Uma remarcacao solicitada dentro do prazo pode reaproveitar o mesmo sinal, conforme disponibilidade.
-- Faltas sem aviso podem causar perda do sinal e exigir confirmacao antecipada em novos agendamentos.
-- Cancelamento pelo salao deve permitir remarcacao ou combinacao de devolucao do sinal.
-- Status validos: `pendente`, `confirmado`, `cancelado`, `concluido`.
-- Agendamentos cancelados nao bloqueiam novos horarios.
+- Atendimento regular: segunda a sábado, das 08:00 às 18:00.
+- Domingo e feriados: das 08:00 às 14:00.
+- O horário final do serviço precisa caber dentro do expediente.
+- O sinal de reserva é sempre 20% do valor do serviço.
+- O pedido público começa como pendente e depende de confirmação da profissional.
+- A tolerância de atraso é de 10 minutos.
+- Cancelamentos e remarcações devem ser solicitados com antecedência, preferencialmente até 2 horas antes.
+- Uma remarcação solicitada dentro do prazo pode reaproveitar o mesmo sinal, conforme disponibilidade.
+- Faltas sem aviso podem causar perda do sinal e exigir confirmação antecipada em novos agendamentos.
+- Cancelamento pelo salão deve permitir remarcação ou combinação de devolução do sinal.
+- Status válidos: `pendente`, `confirmado`, `cancelado`, `concluido`.
+- Agendamentos cancelados não bloqueiam novos horários.
 - O painel deve permitir confirmar, cancelar, concluir, remarcar, exportar CSV e gerar backup JSON.

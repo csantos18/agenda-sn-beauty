@@ -2,6 +2,29 @@
 
 Histórico de mudanças relevantes do Agenda SN Beauty.
 
+## 2026-05-05
+
+### Adicionado
+
+- README reescrito como apresentação profissional de portfólio, com visão de produto, decisões técnicas, qualidade, segurança e aprendizados demonstrados.
+- Seção de demonstração visual com imagens estáticas em `docs/demo/`, evitando dependência de vídeo ou demo online instável.
+- Modelo de README para perfil GitHub em `docs/github-profile-readme.md`.
+- Registro de descrição e tópicos aplicados ao GitHub em `docs/github-repository-settings.md`.
+
+### Alterado
+
+- `.gitignore` passa a ignorar `agenda-python/` e `central-chamados-python/` até esses projetos ficarem prontos para publicação.
+- Política de qualidade revisada com acentuação correta e regra para imagens de portfólio.
+- Estrutura documentada no README atualizada para incluir `docs/demo/`.
+- PRD consolidado em `docs/PRD.md`, removendo cópia duplicada da raiz.
+- Descrição do pacote alinhada à apresentação profissional do repositório.
+
+### Validado
+
+- `npm run quality`
+- `npm run check`
+- Configuração do repositório confirmada via GitHub CLI.
+
 ## 2026-05-03
 
 ### Alterado
@@ -15,7 +38,7 @@ Histórico de mudanças relevantes do Agenda SN Beauty.
 - `npm run smoke`
 - `npm run visual:check`
 - `npm run responsive:audit`
-- Verificacao do online em `https://agenda-sn-beauty.onrender.com/api/health`, confirmando `storage: supabase`.
+- Validação online registrada na época em `https://agenda-sn-beauty.onrender.com/api/health`, confirmando `storage: supabase`.
 
 ## 2026-05-02
 
