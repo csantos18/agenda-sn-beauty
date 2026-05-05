@@ -8,7 +8,7 @@ Sistema web de agendamento para estúdio de beleza, com site público, painel ad
 
 ## Website
 
-Sem URL publicada por enquanto. Adicione a URL de produção somente quando a demo estiver abrindo rápido e estável.
+https://agenda-sn-beauty.onrender.com
 
 ## Topics
 
@@ -34,4 +34,4 @@ Este repositório apresenta um produto web completo com foco em fluxo real de ne
 
 - Descrição aplicada no GitHub.
 - Tópicos aplicados no GitHub.
-- URL de produção não aplicada para evitar link instável no portfólio.
+- URL de produção aplicada após validação da página principal e de `/api/health`.
