@@ -17,12 +17,6 @@ Sistema web de agendamento para um estúdio de beleza, com site público, painel
 
 **Principais aprendizados:** modelagem de fluxo real de negócio, API REST, segurança básica, responsividade, persistência em produção e testes de smoke/visual.
 
-### Central de Chamados
-
-Aplicação para registro e gestão de chamados, com telas públicas e administrativas, autenticação, banco local, relatórios técnicos e documentação de produto.
-
-**Principais aprendizados:** organização de workflow operacional, controle de status, experiência administrativa e documentação orientada a apresentação.
-
 ## Tecnologias
 
 ```text

@@ -174,6 +174,9 @@ As regras completas estão em [`docs/quality-policy.md`](docs/quality-policy.md)
 - O pedido público começa como pendente e depende de confirmação da profissional.
 - Há tolerância de 10 minutos para atraso.
 - Cancelamentos e remarcações devem ser solicitados com antecedência, preferencialmente até 2 horas antes.
+- Uma remarcação solicitada dentro do prazo pode reaproveitar o mesmo sinal, conforme disponibilidade.
+- Faltas sem aviso podem causar perda do sinal e exigir confirmação antecipada em novos agendamentos.
+- Cancelamento pelo salão deve permitir remarcação ou combinação de devolução do sinal.
 - Status usados no painel: `pendente`, `confirmado`, `cancelado` e `concluido`.
 
 ## Persistência
@@ -250,7 +253,8 @@ npm run supabase:audit
 ├── database.json           # Dados iniciais e fallback local
 ├── supabase-schema.sql     # Schema do banco em produção
 ├── scripts/                # Testes, auditorias e utilitários
-└── docs/screenshots/       # Imagens usadas neste README
+├── docs/screenshots/       # Screenshots principais do README
+└── docs/demo/              # Imagens estáticas do fluxo de portfólio
 ```
 
 ## Aprendizados Demonstrados
