@@ -18,7 +18,7 @@ Sistema web de agendamento para o **Sarah Neves Beauty Studio**, criado para tra
 - [Demonstração visual](#demonstração-visual)
 - [Preview das telas](#preview)
 - [Como rodar localmente](#como-rodar-localmente)
-- [Qualidade e testes](#qualidade)
+- [Qualidade e testes](#qualidade-e-testes)
 - [Rotas principais](#rotas-principais)
 
 ## Visão Geral
@@ -129,7 +129,7 @@ NOTIFICATION_WEBHOOK_URL=https://exemplo.com/webhook-de-agendamento
 
 `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `NOTIFICATION_WEBHOOK_URL` são opcionais em desenvolvimento. Sem Supabase, o app usa `database.json` como fallback local.
 
-## Qualidade
+## Qualidade e Testes
 
 O projeto inclui uma rotina de validação para reduzir regressões em API, regras de agendamento, segurança básica e layout responsivo.
 
