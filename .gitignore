@@ -5,3 +5,4 @@ database.test-backup.json
 artifacts/
 agenda-python/
 central-chamados-python/
+controle-entregas-tarefas/
