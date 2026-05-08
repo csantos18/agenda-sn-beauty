@@ -19,19 +19,15 @@ const SEED_DB_PATH = path.join(__dirname, "database.json");
 const ADMIN_PIN = normalizeSecret(process.env.ADMIN_PIN);
 const CONFIGURED_ADMIN_SESSION_SECRET = normalizeSecret(process.env.ADMIN_SESSION_SECRET);
 const ADMIN_SESSION_SECRET = CONFIGURED_ADMIN_SESSION_SECRET || ADMIN_PIN;
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_URL = cleanEnvValue(process.env.SUPABASE_URL);
+const SUPABASE_SERVICE_ROLE_KEY = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
 const NOTIFICATION_WEBHOOK_URL = process.env.NOTIFICATION_WEBHOOK_URL;
 const PRODUCTION_ORIGIN = cleanEnvValue(process.env.PRODUCTION_ORIGIN) || "https://agenda-sn-beauty.onrender.com";
 const LOCAL_REDIRECT_TO_PRODUCTION = cleanEnvValue(process.env.LOCAL_REDIRECT_TO_PRODUCTION) === "true";
 const BUSINESS_TIME_ZONE = process.env.BUSINESS_TIME_ZONE || "America/Sao_Paulo";
-const supabase =
-  SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
-    ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-        auth: { persistSession: false, autoRefreshToken: false },
-      })
-    : null;
-validateProductionConfig();
+let supabaseConfigError = "";
+const supabase = createSupabaseClient();
+const productionConfigErrors = getProductionConfigErrors();
 const storageInfo = getStorageInfo();
 const PUBLIC_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 25 });
 const PUBLIC_LOOKUP_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
@@ -91,6 +87,10 @@ if (storageInfo.temporaryStorage) {
   console.warn("Supabase não configurado na Vercel. Agendamentos usarão armazenamento temporário e podem ser perdidos.");
 }
 
+if (productionConfigErrors.length) {
+  console.warn(`Configuração de produção incompleta: ${productionConfigErrors.join("; ")}.`);
+}
+
 function wrapAsyncRoutes(expressApp) {
   for (const method of ["get", "post", "patch", "delete"]) {
     const original = expressApp[method].bind(expressApp);
@@ -144,8 +144,21 @@ function normalizeSecret(value) {
     .trim();
 }
 
-function validateProductionConfig() {
-  if (process.env.NODE_ENV !== "production") return;
+function createSupabaseClient() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return null;
+
+  try {
+    return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  } catch (error) {
+    supabaseConfigError = `Supabase invalido: ${error.message}`;
+    return null;
+  }
+}
+
+function getProductionConfigErrors() {
+  if (process.env.NODE_ENV !== "production") return [];
 
   const missing = [];
   const weak = [];
@@ -168,11 +181,9 @@ function validateProductionConfig() {
   ) {
     weak.push("ADMIN_SESSION_SECRET deve ter pelo menos 32 caracteres e nao pode ser valor padrao");
   }
+  if (supabaseConfigError) weak.push(supabaseConfigError);
 
-  if (missing.length || weak.length) {
-    const details = [...missing.map((item) => `faltando ${item}`), ...weak].join("; ");
-    throw new Error(`Configuracao de producao incompleta: ${details}.`);
-  }
+  return [...missing.map((item) => `faltando ${item}`), ...weak];
 }
 
 function isPlaceholderSecret(value) {
@@ -1025,7 +1036,13 @@ function appointmentValidationStatus(error) {
 }
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", app: "Agenda SN Beauty", ...storageInfo });
+  const ready = storageInfo.productionReady && productionConfigErrors.length === 0;
+  res.status(ready ? 200 : 503).json({
+    status: ready ? "ok" : "degraded",
+    app: "Agenda SN Beauty",
+    ...storageInfo,
+    configErrors: productionConfigErrors,
+  });
 });
 
 app.get("/api/admin/monitor", requireAdmin, async (req, res) => {
