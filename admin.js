@@ -174,10 +174,13 @@ function renderMonitor(data) {
     return;
   }
 
+  const storageLabel = data.storageLabel || (data.storage === "supabase" ? "Supabase ativo" : "Arquivo local");
+  const backupLabel = data.persistentStorage ? "Exportação segura" : "Temporário";
+
   adminMonitorPanel.innerHTML = `
     <article>
       <span>Banco</span>
-      <strong>${escapeHtml(data.storage === "supabase" ? "Supabase ativo" : "Arquivo local")}</strong>
+      <strong>${escapeHtml(storageLabel)}</strong>
     </article>
     <article>
       <span>Hoje</span>
@@ -197,7 +200,7 @@ function renderMonitor(data) {
     </article>
     <article>
       <span>Backup</span>
-      <strong>${data.storage === "supabase" ? "Exportação segura" : "Somente local"}</strong>
+      <strong>${escapeHtml(backupLabel)}</strong>
     </article>
   `;
 }

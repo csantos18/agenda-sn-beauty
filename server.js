@@ -2,6 +2,7 @@
 const crypto = require("crypto");
 const fsSync = require("fs");
 const fs = require("fs/promises");
+const os = require("os");
 const path = require("path");
 const { createClient } = require("@supabase/supabase-js");
 
@@ -10,7 +11,8 @@ loadLocalEnv();
 const app = express();
 wrapAsyncRoutes(app);
 const PORT = process.env.PORT || 5175;
-const DATA_DIR = process.env.DATA_DIR || __dirname;
+const IS_VERCEL = Boolean(cleanEnvValue(process.env.VERCEL));
+const DATA_DIR = process.env.DATA_DIR || (IS_VERCEL ? path.join(os.tmpdir(), "agenda-sn-beauty") : __dirname);
 const DB_PATH = path.join(DATA_DIR, "database.json");
 const SEED_DB_PATH = path.join(__dirname, "database.json");
 const ADMIN_PIN = normalizeSecret(process.env.ADMIN_PIN);
@@ -27,6 +29,7 @@ const supabase =
         auth: { persistSession: false, autoRefreshToken: false },
       })
     : null;
+const storageInfo = getStorageInfo();
 const PUBLIC_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 25 });
 const PUBLIC_LOOKUP_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
 const REVIEW_WRITE_LIMIT = createRateLimit({ windowMs: 60 * 60 * 1000, max: 6 });
@@ -79,6 +82,10 @@ if (!ADMIN_PIN) {
 
 if (!ADMIN_SESSION_SECRET) {
   console.warn("ADMIN_SESSION_SECRET não configurado. Configure ADMIN_PIN ou ADMIN_SESSION_SECRET no Render.");
+}
+
+if (storageInfo.temporaryStorage) {
+  console.warn("Supabase não configurado na Vercel. Agendamentos usarão armazenamento temporário e podem ser perdidos.");
 }
 
 function wrapAsyncRoutes(expressApp) {
@@ -138,6 +145,36 @@ function safeEqualSecret(first, second) {
   const firstHash = crypto.createHash("sha256").update(String(first || "")).digest();
   const secondHash = crypto.createHash("sha256").update(String(second || "")).digest();
   return crypto.timingSafeEqual(firstHash, secondHash);
+}
+
+function getStorageInfo() {
+  if (supabase) {
+    return {
+      storage: "supabase",
+      storageLabel: "Supabase ativo",
+      persistentStorage: true,
+      temporaryStorage: false,
+      productionReady: true,
+    };
+  }
+
+  if (IS_VERCEL) {
+    return {
+      storage: "temporary-file",
+      storageLabel: "Temporário na Vercel",
+      persistentStorage: false,
+      temporaryStorage: true,
+      productionReady: false,
+    };
+  }
+
+  return {
+    storage: "local-file",
+    storageLabel: "Arquivo local",
+    persistentStorage: true,
+    temporaryStorage: false,
+    productionReady: true,
+  };
 }
 
 async function readDb() {
@@ -935,7 +972,7 @@ function appointmentValidationStatus(error) {
 }
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", app: "Agenda SN Beauty", storage: supabase ? "supabase" : "local-file" });
+  res.json({ status: "ok", app: "Agenda SN Beauty", ...storageInfo });
 });
 
 app.get("/api/admin/monitor", requireAdmin, async (req, res) => {
@@ -947,7 +984,7 @@ app.get("/api/admin/monitor", requireAdmin, async (req, res) => {
 
   res.json({
     status: "ok",
-    storage: supabase ? "supabase" : "local-file",
+    ...storageInfo,
     supabaseConfigured: Boolean(supabase),
     notificationsConfigured: Boolean(NOTIFICATION_WEBHOOK_URL),
     today,
@@ -1121,7 +1158,7 @@ app.get("/api/admin/backup", requireAdmin, async (req, res) => {
   const auditLogs = await readAuditLogs(AUDIT_LOG_LIMIT);
   const backup = {
     generatedAt: new Date().toISOString(),
-    storage: supabase ? "supabase" : "local-file",
+    ...storageInfo,
     services: db.services,
     professionals: db.professionals,
     appointments: db.appointments,
