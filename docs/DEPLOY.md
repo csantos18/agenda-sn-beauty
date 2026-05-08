@@ -2,7 +2,7 @@
 
 ## Decisao Atual
 
-O caminho oficial de teste e a **Vercel**.
+O caminho de teste rapido e a **Vercel**.
 
 O **Render** continua ativo como ambiente atual ate a Vercel ser aprovada.
 

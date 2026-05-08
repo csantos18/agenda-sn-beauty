@@ -6,7 +6,7 @@ Encontrar uma alternativa ao Render free para reduzir a demora no primeiro acess
 
 ## Decisao Atual
 
-Seguir com **Vercel** como teste em paralelo.
+Seguir com **Vercel** como teste rapido em paralelo.
 
 Manter **Render** ativo ate a Vercel ser validada.
 
@@ -16,7 +16,7 @@ Status em 2026-05-08: Vercel abre home, arquivos estaticos, painel e API, mas ai
 
 ### Vercel
 
-Status: caminho oficial atual para teste.
+Status: teste rapido funcional, ainda nao oficial para producao.
 
 Motivos:
 
