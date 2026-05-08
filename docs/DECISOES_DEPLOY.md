@@ -1,16 +1,45 @@
-# Decisoes de Deploy - Agenda SN Beauty
+# Decisoes De Deploy - Agenda SN Beauty
 
 ## Objetivo
 
-Encontrar uma alternativa ao Render free, porque o primeiro acesso pode demorar muito quando o servico esta dormindo.
+Encontrar uma alternativa ao Render free para reduzir a demora no primeiro acesso.
 
-## Ambiente atual
+## Decisao Atual
 
-- Plataforma atual: Render.
-- Status: manter ativo ate novo ambiente ser aprovado.
-- Problema: demora no primeiro acesso em plano gratuito.
+Seguir com **Vercel** como teste em paralelo.
 
-## Caminhos avaliados
+Manter **Render** ativo ate a Vercel ser validada.
+
+## O Que Esta Aprovado Para Teste
+
+### Vercel
+
+Status: caminho oficial atual para teste.
+
+Motivos:
+
+- tem plano Hobby;
+- integra direto com GitHub;
+- pode abrir o front-end com boa velocidade;
+- o projeto foi adaptado para Express na Vercel usando `api/server.js`.
+
+Condicao:
+
+- para producao real, usar Supabase como banco.
+
+## O Que Fica Pausado
+
+### Railway
+
+Status: pausado.
+
+Motivo:
+
+- a conta exibiu bloqueio para criar novo recurso gratuito.
+
+Arquivo preservado:
+
+- `railway.json`
 
 ### Koyeb
 
@@ -18,81 +47,45 @@ Status: descartado por enquanto.
 
 Motivo:
 
-- solicitou plano Pro/cartao durante o cadastro;
-- nao atende ao objetivo atual de testar sem pagamento.
+- solicitou plano/cartao durante o cadastro.
 
-Observacao:
+Arquivos preservados:
 
-- `Dockerfile` e `.dockerignore` ficam preservados como suporte futuro para Docker.
-- Koyeb nao e o caminho oficial atual.
+- `Dockerfile`
+- `.dockerignore`
 
-### Railway
-
-Status: descartado por enquanto para a conta atual.
-
-Motivo:
-
-- aceita projeto Node.js/Express;
-- exige menos refatoracao que Cloudflare Workers ou Vercel Functions;
-- e mais parecido com a arquitetura atual do Agenda SN Beauty.
-- porem a conta usada exibiu bloqueio para criar novo recurso gratuito.
-
-Arquivos relacionados:
-
-- `railway.json`
-- `package.json`
-- `server.js`
+## O Que Fica Para Futuro
 
 ### Cloudflare Pages
 
-Status: caminho futuro para front-end rapido.
+Status: possibilidade futura.
 
 Motivo:
 
-- excelente para site publico estatico;
-- nao roda o `server.js` atual sozinho.
-
-Uso recomendado:
-
-- separar front-end;
-- configurar `API_BASE_URL`;
-- manter API em backend separado ou migrar para Workers/Supabase Edge Functions.
-
-### Vercel
-
-Status: caminho oficial atual para novo teste.
-
-Motivo:
-
-- otima para front-end;
-- possui plano Hobby;
-- o backend Express foi adaptado para API serverless usando `api/server.js`.
-
-Condicao obrigatoria:
-
-- usar Supabase em producao, pois `database.json` nao e banco definitivo em ambiente serverless.
+- e muito rapido para front-end;
+- mas o projeto atual tem backend Express;
+- exigiria separar front-end e API ou migrar rotas para Workers.
 
 ### Supabase
 
-Status: recomendado para banco e back-end multiusuario.
+Status: recomendado para producao.
 
-Uso atual/futuro:
+Uso:
 
 - banco PostgreSQL;
-- dados de agendamentos;
+- agendamentos;
 - avaliacoes;
-- possivel autenticacao e Edge Functions.
+- dados administrativos;
+- possivel autenticacao futura.
 
-## Decisao atual
+## Criterios Para Trocar O Link Oficial
 
-Seguir com Vercel como teste em paralelo.
+Trocar do Render para Vercel somente quando:
 
-Nao derrubar Render ate:
-
-1. Vercel publicar com sucesso.
-2. `/api/health` responder.
-3. Site publico abrir rapido.
-4. Agendamento funcionar.
-5. Painel admin funcionar.
-6. Supabase estar ativo.
-7. Cliente/supervisor aprovar.
+1. A Vercel publicar o commit mais recente.
+2. A home abrir sem erro.
+3. `/api/health` responder.
+4. O painel admin abrir.
+5. O agendamento funcionar.
+6. O tempo de abertura for melhor que o Render.
+7. Cliente ou supervisor aprovar.
