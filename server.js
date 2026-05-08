@@ -58,6 +58,12 @@ app.use(securityHeaders);
 app.use(express.json({ limit: "20kb" }));
 app.use(redirectLocalToProduction);
 app.use(blockProjectFiles);
+app.get("/", servePage("index.html"));
+app.get("/index.html", servePage("index.html"));
+app.get("/admin", servePage("admin.html"));
+app.get("/admin.html", servePage("admin.html"));
+app.get("/termos", servePage("termos.html"));
+app.get("/termos.html", servePage("termos.html"));
 app.use(
   express.static(__dirname, {
     dotfiles: "deny",
@@ -470,6 +476,16 @@ function blockProjectFiles(req, res, next) {
   }
 
   next();
+}
+
+function servePage(fileName) {
+  return (req, res, next) => {
+    const filePath = path.join(__dirname, fileName);
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.sendFile(filePath, (error) => {
+      if (error) next(error);
+    });
+  };
 }
 
 function safeDecodePath(pathname) {
