@@ -517,7 +517,8 @@ function blockProjectFiles(req, res, next) {
 
 function servePage(fileName) {
   return (req, res, next) => {
-    const filePath = path.join(__dirname, fileName);
+    const resolvedFileName = req.path === "/" ? "index.html" : fileName;
+    const filePath = path.join(__dirname, resolvedFileName);
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     res.sendFile(filePath, (error) => {
       if (error) next(error);
