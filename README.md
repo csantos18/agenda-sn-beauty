@@ -4,7 +4,7 @@
 ![Express](https://img.shields.io/badge/Express-API-111111?style=flat-square&logo=express&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-produ%C3%A7%C3%A3o-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
 ![Playwright](https://img.shields.io/badge/Playwright-visual%20QA-2EAD33?style=flat-square&logo=playwright&logoColor=white)
-![Render](https://img.shields.io/badge/Deploy-Render-46E3B7?style=flat-square&logo=render&logoColor=white)
+![Deploy](https://img.shields.io/badge/Deploy-Render%20atual%20%7C%20Railway%20em%20teste-46E3B7?style=flat-square)
 
 Sistema web de agendamento para o **Sarah Neves Beauty Studio**, criado para transformar pedidos manuais de horário em um fluxo digital com experiência pública, painel administrativo, persistência em banco, validações de negócio e rotina de qualidade automatizada.
 
@@ -12,7 +12,7 @@ Sistema web de agendamento para o **Sarah Neves Beauty Studio**, criado para tra
 
 ## Links Rápidos
 
-- [Demo online](https://agenda-sn-beauty.onrender.com)
+- [Demo online atual](https://agenda-sn-beauty.onrender.com)
 - [PRD do produto](docs/PRD.md)
 - [Relatório técnico](docs/RELATORIO_TECNICO.md)
 - [Responsividade content-first](docs/RESPONSIVIDADE_CONTENT_FIRST.md)
@@ -93,7 +93,8 @@ As imagens acima mostram a experiência pública e o preenchimento do fluxo prin
 - **Supabase:** persistência em produção com schema SQL versionado no repositório.
 - **Fallback local:** permite rodar o projeto sem depender de serviços externos durante desenvolvimento e testes.
 - **Playwright:** validação visual e responsiva em navegador headless.
-- **Render:** deploy com configuração versionada em `render.yaml`.
+- **Render:** ambiente online atual com configuração versionada em `render.yaml`.
+- **Railway:** alternativa oficial em teste para reduzir demora de primeiro acesso, com configuração versionada em `railway.json`.
 
 ## Stack
 
@@ -103,7 +104,7 @@ As imagens acima mostram a experiência pública e o preenchimento do fluxo prin
 | Back-end | Node.js, Express |
 | Banco de dados | Supabase ou arquivo local |
 | Testes e qualidade | Node check, smoke tests, Playwright, npm audit |
-| Deploy | Render |
+| Deploy | Render atual; Railway em teste |
 
 ## Como Rodar Localmente
 
@@ -202,7 +203,7 @@ As regras completas estão em [`docs/quality-policy.md`](docs/quality-policy.md)
 
 O app funciona em dois modos:
 
-- **Supabase:** recomendado para produção e deploy no Render.
+- **Supabase:** recomendado para produção, tanto no Render quanto no Railway.
 - **Arquivo local:** fallback em `database.json`, útil para desenvolvimento e testes.
 
 Para configurar o Supabase:
@@ -210,7 +211,7 @@ Para configurar o Supabase:
 1. Crie um projeto no Supabase.
 2. Abra o SQL Editor.
 3. Execute o conteúdo de `supabase-schema.sql`.
-4. Configure as variáveis no Render.
+4. Configure as variáveis no ambiente de deploy aprovado: Render atual ou Railway em teste.
 5. Confira `/api/health`; o campo `storage` deve retornar `supabase`.
 
 Para importar dados locais:

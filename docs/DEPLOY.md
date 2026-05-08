@@ -22,41 +22,21 @@ Fluxo recomendado:
 5. Configurar Supabase para producao.
 6. Rodar auditoria de qualidade antes de publicar.
 
-## Koyeb
+## Tentativa descartada: Koyeb
 
-Opcao para testar o projeto completo com Node.js/Express sem separar front-end e back-end neste momento.
+Koyeb foi avaliado como alternativa para rodar o projeto completo com Node.js/Express.
 
-Arquivos preparados:
+Motivo para nao seguir agora:
 
-- `Dockerfile`
-- `.dockerignore`
-- `package.json`
+- durante o cadastro, a plataforma solicitou plano Pro/cartao;
+- o objetivo atual e testar alternativa sem pagamento;
+- manter Koyeb como caminho principal geraria ambiguidade.
 
-Configuracao recomendada:
-
-- Runtime: Docker ou Node.js.
-- Porta: usar variavel `PORT` da plataforma.
-- Start command: `npm start`.
-- Health check: `/api/health`.
-
-Variaveis obrigatorias:
-
-- `ADMIN_PIN`
-- `ADMIN_SESSION_SECRET`
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-
-Variavel opcional:
-
-- `NOTIFICATION_WEBHOOK_URL`
-
-Observacao:
-
-Se o Koyeb entregar abertura mais rapida e estavel que o Render free, ele pode substituir o Render. Se nao entregar, manter Render temporariamente e avaliar Cloudflare Pages + Workers + Supabase.
+Os arquivos `Dockerfile` e `.dockerignore` continuam no projeto porque podem ser uteis para Docker, VPS ou outra plataforma no futuro, mas **nao sao o caminho oficial atual**.
 
 ## Railway
 
-Opcao recomendada para testar o projeto completo sem reescrever o backend.
+Opcao oficial atual para testar o projeto completo sem reescrever o backend.
 
 Arquivos preparados:
 

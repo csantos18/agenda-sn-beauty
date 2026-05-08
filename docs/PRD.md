@@ -331,7 +331,8 @@ O site deve expor dados estruturados para mecanismos de busca, incluindo nome do
 - `docs/quality-policy.md`: politica de qualidade, seguranca e responsividade.
 - `docs/POLITICA_PRIVACIDADE_LGPD.md`: politica de privacidade e LGPD.
 - `supabase-schema.sql`: estrutura de banco para Supabase.
-- `render.yaml`: configuracao de deploy.
+- `render.yaml`: configuracao do deploy atual no Render.
+- `railway.json`: configuracao do deploy em teste no Railway.
 
 ## 16. Resumo Executivo
 
