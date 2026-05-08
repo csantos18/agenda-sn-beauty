@@ -10,6 +10,8 @@ Seguir com **Vercel** como teste em paralelo.
 
 Manter **Render** ativo ate a Vercel ser validada.
 
+Status em 2026-05-08: Vercel abre home, arquivos estaticos, painel e API, mas ainda usa armazenamento temporario. Nao trocar o link oficial antes de configurar Supabase tambem na Vercel.
+
 ## O Que Esta Aprovado Para Teste
 
 ### Vercel
@@ -26,6 +28,7 @@ Motivos:
 Condicao:
 
 - para producao real, usar Supabase como banco.
+- confirmar `/api/health` com `productionReady=true`.
 
 ## O Que Fica Pausado
 

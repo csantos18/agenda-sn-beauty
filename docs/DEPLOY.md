@@ -13,7 +13,7 @@ Nao derrubar nenhum ambiente antes de validar o novo link com cliente ou supervi
 | Plataforma | Status | Uso |
 | --- | --- | --- |
 | Render | Ativo | Ambiente atual de demonstracao |
-| Vercel | Em teste | Alternativa para abertura mais rapida |
+| Vercel | Em teste funcional | Alternativa para abertura mais rapida; falta configurar Supabase para producao |
 | Railway | Pausado | Bloqueou criacao gratuita na conta atual |
 | Koyeb | Descartado agora | Solicitou plano/cartao |
 | Cloudflare Pages | Futuro | Exige separacao maior entre front-end e API |
@@ -61,6 +61,11 @@ Variavel opcional:
 Para teste visual, o projeto pode abrir sem Supabase.
 
 Para producao real, usar Supabase. Na Vercel, `database.json` nao deve ser tratado como banco definitivo.
+
+Status validado em 2026-05-08:
+
+- Render: online com Supabase ativo e `productionReady=true`.
+- Vercel: online e rapida, mas `/api/health` indica `temporaryStorage=true` enquanto `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` nao estiverem configuradas no projeto da Vercel.
 
 Arquivo de schema:
 
