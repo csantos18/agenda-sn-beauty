@@ -54,6 +54,45 @@ Observacao:
 
 Se o Koyeb entregar abertura mais rapida e estavel que o Render free, ele pode substituir o Render. Se nao entregar, manter Render temporariamente e avaliar Cloudflare Pages + Workers + Supabase.
 
+## Railway
+
+Opcao recomendada para testar o projeto completo sem reescrever o backend.
+
+Arquivos preparados:
+
+- `railway.json`
+- `package.json`
+- `server.js`
+
+Configuracao esperada:
+
+- Build: `npm install`
+- Start: `npm start`
+- Health check: `/api/health`
+- Porta: Railway injeta `PORT` automaticamente.
+
+Variaveis obrigatorias:
+
+- `ADMIN_PIN`
+- `ADMIN_SESSION_SECRET`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Variavel opcional:
+
+- `NOTIFICATION_WEBHOOK_URL`
+
+Estrategia:
+
+1. Criar projeto Railway conectado ao GitHub.
+2. Usar o repositorio `agenda-sn-beauty`.
+3. Configurar variaveis.
+4. Aguardar deploy.
+5. Abrir `/api/health`.
+6. Testar site publico, agenda e painel admin.
+7. Comparar tempo de abertura com Render.
+8. Manter Render ativo ate aprovar Railway.
+
 ## Variaveis Principais
 
 - `PORT`: porta do servidor.
