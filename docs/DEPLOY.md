@@ -25,7 +25,7 @@ Opcionais no Render:
 
 ```text
 SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
+SUPABASE_SERVICE_ROLE_KEY=sua-chave-secret-ou-service-role
 NOTIFICATION_WEBHOOK_URL=https://seu-webhook
 ```
 
@@ -41,10 +41,19 @@ ADMIN_PIN=sua-senha-forte-do-painel
 ADMIN_SESSION_SECRET=uma-chave-aleatoria-com-32-caracteres-ou-mais
 BUSINESS_TIME_ZONE=America/Sao_Paulo
 SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
+SUPABASE_SERVICE_ROLE_KEY=sua-chave-secret-ou-service-role
 ```
 
-Sem `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`, a producao na Vercel deve falhar de proposito para evitar perda de agendamentos.
+Use uma chave secreta do Supabase: `service_role` nos projetos antigos ou `secret key` nos projetos novos. Nao use chave `anon` ou `publishable`.
+
+Alternativas aceitas pelo app se o Supabase mostrar nomes novos:
+
+```text
+SUPABASE_SECRET_KEY=sua-chave-secret
+SUPABASE_SECRET_KEYS={"default":"sua-chave-sb_secret"}
+```
+
+Na Vercel, sem uma chave secreta valida do Supabase, o app abre em modo degradado para nao derrubar a interface, mas `/api/health` fica `503` e a producao nao deve ser considerada final.
 
 ## Validacao Pos-Deploy
 
@@ -61,7 +70,7 @@ Depois de publicar:
 
 ## Regra De Producao
 
-Em `NODE_ENV=production`, o app agora trava na inicializacao se faltar:
+Em `NODE_ENV=production`, o app sinaliza erro em `/api/health` se faltar:
 
 - `ADMIN_PIN`
 - `ADMIN_SESSION_SECRET`

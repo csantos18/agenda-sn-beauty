@@ -5,7 +5,7 @@ const { createClient } = require("@supabase/supabase-js");
 loadLocalEnv();
 
 const SUPABASE_URL = cleanEnvValue(process.env.SUPABASE_URL);
-const SUPABASE_SERVICE_ROLE_KEY = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
+const SUPABASE_SERVICE_ROLE_KEY = getSupabaseServerKey();
 const DB_PATH = path.join(__dirname, "..", "database.json");
 
 async function main() {
@@ -64,6 +64,22 @@ function loadLocalEnv() {
 
 function cleanEnvValue(value) {
   return typeof value === "string" ? value.trim().replace(/^["']|["']$/g, "") : value;
+}
+
+function getSupabaseServerKey() {
+  const directKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY);
+  if (directKey) return directKey;
+
+  const secretKeysJson = cleanEnvValue(process.env.SUPABASE_SECRET_KEYS);
+  if (!secretKeysJson) return "";
+
+  try {
+    const parsed = JSON.parse(secretKeysJson);
+    const values = Array.isArray(parsed) ? parsed : Object.values(parsed);
+    return values.find((value) => typeof value === "string" && value.startsWith("sb_secret_")) || "";
+  } catch {
+    return "";
+  }
 }
 
 main().catch((error) => {

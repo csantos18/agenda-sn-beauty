@@ -135,11 +135,11 @@ Crie um `.env` local com base em `.env.example`:
 ADMIN_PIN=sua-senha-administrativa
 ADMIN_SESSION_SECRET=seu-segredo-de-sessao
 SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
+SUPABASE_SERVICE_ROLE_KEY=sua-chave-secret-ou-service-role
 NOTIFICATION_WEBHOOK_URL=https://exemplo.com/webhook-de-agendamento
 ```
 
-`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `NOTIFICATION_WEBHOOK_URL` são opcionais em desenvolvimento. Sem Supabase, o app usa `database.json` como fallback local.
+`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` e `NOTIFICATION_WEBHOOK_URL` são opcionais em desenvolvimento. Sem Supabase, o app usa `database.json` como fallback local. Em produção na Vercel, use uma chave secreta do Supabase (`service_role` ou `secret key`); chave `anon`/`publishable` deixa o health em modo degradado.
 
 ## Qualidade e Testes
 

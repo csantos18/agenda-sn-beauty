@@ -20,9 +20,7 @@ const ADMIN_PIN = normalizeSecret(process.env.ADMIN_PIN);
 const CONFIGURED_ADMIN_SESSION_SECRET = normalizeSecret(process.env.ADMIN_SESSION_SECRET);
 const ADMIN_SESSION_SECRET = CONFIGURED_ADMIN_SESSION_SECRET || ADMIN_PIN;
 const SUPABASE_URL = cleanEnvValue(process.env.SUPABASE_URL);
-const SUPABASE_SERVICE_ROLE_KEY = cleanEnvValue(
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY,
-);
+const SUPABASE_SERVICE_ROLE_KEY = getSupabaseServerKey();
 const NOTIFICATION_WEBHOOK_URL = process.env.NOTIFICATION_WEBHOOK_URL;
 const PRODUCTION_ORIGIN = cleanEnvValue(process.env.PRODUCTION_ORIGIN) || "https://agenda-sn-beauty.onrender.com";
 const LOCAL_REDIRECT_TO_PRODUCTION = cleanEnvValue(process.env.LOCAL_REDIRECT_TO_PRODUCTION) === "true";
@@ -139,6 +137,22 @@ function cleanEnvValue(value) {
   return typeof value === "string" ? value.trim().replace(/^["']|["']$/g, "") : value;
 }
 
+function getSupabaseServerKey() {
+  const directKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY);
+  if (directKey) return directKey;
+
+  const secretKeysJson = cleanEnvValue(process.env.SUPABASE_SECRET_KEYS);
+  if (!secretKeysJson) return "";
+
+  try {
+    const parsed = JSON.parse(secretKeysJson);
+    const values = Array.isArray(parsed) ? parsed : Object.values(parsed);
+    return values.find((value) => typeof value === "string" && value.startsWith("sb_secret_")) || "";
+  } catch {
+    return "";
+  }
+}
+
 function normalizeSecret(value) {
   if (typeof value !== "string") return value;
   return cleanEnvValue(value)
@@ -174,6 +188,9 @@ function getProductionConfigErrors() {
   if (!SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) missing.push("SUPABASE_URL");
   if (IS_VERCEL && !hasSupabase) missing.push("SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY para Vercel");
   if (!hasSupabase && !hasPersistentDataDir) missing.push("DATA_DIR persistente ou Supabase");
+  if (SUPABASE_SERVICE_ROLE_KEY && isPublicSupabaseKey(SUPABASE_SERVICE_ROLE_KEY)) {
+    weak.push("SUPABASE_SERVICE_ROLE_KEY deve ser chave secreta/service_role, nao anon/publishable");
+  }
 
   if (ADMIN_PIN && ADMIN_PIN.length < 8) {
     weak.push(`ADMIN_PIN deve ter pelo menos 8 caracteres; atual tem ${ADMIN_PIN.length}`);
@@ -190,6 +207,21 @@ function getProductionConfigErrors() {
   if (supabaseConfigError) weak.push(supabaseConfigError);
 
   return [...missing.map((item) => `faltando ${item}`), ...weak];
+}
+
+function isPublicSupabaseKey(value) {
+  const key = String(value || "").trim();
+  if (key.startsWith("sb_publishable_")) return true;
+
+  const parts = key.split(".");
+  if (parts.length < 2) return false;
+
+  try {
+    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
+    return payload.role === "anon";
+  } catch {
+    return false;
+  }
 }
 
 function isPlaceholderSecret(value) {
