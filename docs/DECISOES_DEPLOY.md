@@ -10,13 +10,13 @@ Seguir com **Vercel** como teste rapido em paralelo.
 
 Manter **Render** ativo ate a Vercel ser validada.
 
-Status em 2026-05-08: Vercel abre home, arquivos estaticos, painel e API, mas ainda usa armazenamento temporario. Nao trocar o link oficial antes de configurar Supabase tambem na Vercel.
+Status em 2026-05-08: Vercel abre home, arquivos estaticos, painel e API. O app reconhece Supabase configurado, mas `/api/health` permanece `503 degraded` porque a chave secreta do Supabase na Vercel retorna `Invalid API key`. Nao declarar producao final antes de corrigir somente `SUPABASE_SERVICE_ROLE_KEY` ou `SUPABASE_SECRET_KEY`.
 
 ## O Que Esta Aprovado Para Teste
 
 ### Vercel
 
-Status: teste rapido funcional, ainda nao oficial para producao.
+Status: online para validacao, ainda nao oficial para producao final.
 
 Motivos:
 
@@ -27,7 +27,7 @@ Motivos:
 
 Condicao:
 
-- para producao real, usar Supabase como banco.
+- para producao real, usar chave secreta valida do Supabase como banco.
 - confirmar `/api/health` com `productionReady=true`.
 
 ## O Que Fica Pausado

@@ -2,18 +2,25 @@
 
 ![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20-339933?style=flat-square&logo=node.js&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-API-111111?style=flat-square&logo=express&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-produ%C3%A7%C3%A3o-3ECF8E?style=flat-square&logo=supabase&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-pendente%20chave%20secreta-F59E0B?style=flat-square&logo=supabase&logoColor=white)
 ![Playwright](https://img.shields.io/badge/Playwright-visual%20QA-2EAD33?style=flat-square&logo=playwright&logoColor=white)
-![Deploy](https://img.shields.io/badge/Deploy-Render%20produ%C3%A7%C3%A3o%20%7C%20Vercel%20teste%20r%C3%A1pido-46E3B7?style=flat-square)
+![Deploy](https://img.shields.io/badge/Deploy-Vercel%20online%20degradado-F59E0B?style=flat-square)
 
 Sistema web de agendamento para o **Sarah Neves Beauty Studio**, criado para transformar pedidos manuais de horário em um fluxo digital com experiência pública, painel administrativo, persistência em banco, validações de negócio e rotina de qualidade automatizada.
 
 > Projeto de portfólio com foco em produto real: organização operacional, segurança básica, responsividade, clareza para a cliente e ferramentas administrativas para a profissional.
 
+## Status Atual
+
+O repositório, a pasta local e o GitHub estão alinhados no mesmo propósito: manter a Agenda SN Beauty online na Vercel para validação, com site e painel carregando, mas sem declarar produção final enquanto `/api/health` estiver `503 degraded`.
+
+Bloqueio atual confirmado: a chave secreta do Supabase na Vercel ainda retorna `Invalid API key`. Corrigir somente `SUPABASE_SERVICE_ROLE_KEY` ou `SUPABASE_SECRET_KEY`.
+
 ## Links Rápidos
 
 - [Demo online atual](https://agenda-sn-beauty.onrender.com)
 - [Teste rapido na Vercel](https://agenda-sn-beauty.vercel.app)
+- [Status atual de produção](docs/STATUS_ATUAL.md)
 - [PRD do produto](docs/PRD.md)
 - [Relatório técnico](docs/RELATORIO_TECNICO.md)
 - [Responsividade content-first](docs/RESPONSIVIDADE_CONTENT_FIRST.md)
@@ -91,11 +98,11 @@ As imagens acima mostram a experiência pública e o preenchimento do fluxo prin
 
 - **HTML, CSS e JavaScript sem framework:** escolha intencional para demonstrar domínio da base web, responsividade e manipulação direta do DOM.
 - **Node.js + Express:** API REST simples, clara e adequada ao escopo do produto.
-- **Supabase:** persistência em produção com schema SQL versionado no repositório.
+- **Supabase:** persistência de produção preparada com schema SQL versionado; na Vercel atual ainda depende de chave secreta válida.
 - **Fallback local:** permite rodar o projeto sem depender de serviços externos durante desenvolvimento e testes.
 - **Playwright:** validação visual e responsiva em navegador headless.
-- **Render:** ambiente online atual com configuração versionada em `render.yaml`.
-- **Vercel:** alternativa rapida em teste; ainda exige Supabase configurado na Vercel antes de virar ambiente oficial.
+- **Render:** configuração preservada em `render.yaml`.
+- **Vercel:** ambiente online atual para validação; site e admin abrem, mas `/api/health` só fica final quando a chave secreta do Supabase for válida.
 - **Railway:** configuração preservada em `railway.json`, mas sem uso oficial enquanto exigir upgrade na conta atual.
 
 ## Stack
@@ -106,7 +113,7 @@ As imagens acima mostram a experiência pública e o preenchimento do fluxo prin
 | Back-end | Node.js, Express |
 | Banco de dados | Supabase ou arquivo local |
 | Testes e qualidade | Node check, smoke tests, Playwright, npm audit |
-| Deploy | Render em producao; Vercel em teste rapido |
+| Deploy | Vercel online em modo degradado; Render preservado |
 
 ## Como Rodar Localmente
 
