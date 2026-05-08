@@ -364,6 +364,28 @@ button:disabled {
   margin: 0 0 8px;
 }
 
+.service-card h3,
+.service-card p,
+.service-meta,
+.week-card span,
+.week-card strong,
+.week-card small,
+.stat-card span,
+.stat-card strong,
+.contact-grid span,
+.contact-grid strong,
+.contact-grid p,
+.policy-grid span,
+.policy-grid strong,
+.policy-grid p,
+.privacy-grid span,
+.privacy-grid p {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
 .service-meta {
   display: flex;
   justify-content: space-between;
@@ -945,12 +967,12 @@ body > .app-message {
 .policy-grid,
 .privacy-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 14px;
 }
 
 .privacy-grid {
-  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
 }
 
 .policy-grid article,
@@ -991,7 +1013,7 @@ body > .app-message {
 
 .contact-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
   gap: 14px;
 }
 
@@ -1291,7 +1313,7 @@ body > .app-message {
   }
 
   .hero-panel {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   }
 
   .hero-panel div {
@@ -1299,12 +1321,9 @@ body > .app-message {
   }
 
   .policy-grid,
-  .privacy-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
+  .privacy-grid,
   .contact-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   }
 }
 
@@ -1319,7 +1338,7 @@ body > .app-message {
   }
 
   .hero-panel {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   }
 
   .services-grid,
@@ -1329,11 +1348,11 @@ body > .app-message {
 
   .admin-panel,
   .admin-panel-dedicated {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
   }
 
   .week-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
   }
 }
 
@@ -1362,7 +1381,7 @@ body > .app-message {
 
   .admin-panel,
   .admin-panel-dedicated {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
   }
 
   .admin-panel button,
@@ -1377,7 +1396,7 @@ body > .app-message {
   .admin-stats,
   .contact-grid,
   .week-grid {
-    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
   }
 }
 
