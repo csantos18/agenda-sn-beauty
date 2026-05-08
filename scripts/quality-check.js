@@ -12,7 +12,7 @@ async function main() {
   const port = await freePort();
   const dataDir = await fs.mkdtemp(path.join(os.tmpdir(), "sn-beauty-quality-"));
   const adminPin = "quality-test-pin";
-  const adminSessionSecret = "quality-test-session-secret";
+  const adminSessionSecret = "quality-test-session-secret-32-chars";
   const server = startServer(port, dataDir, adminPin, adminSessionSecret);
 
   try {

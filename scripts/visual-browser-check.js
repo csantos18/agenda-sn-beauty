@@ -147,7 +147,7 @@ function startServer(port, dataDir) {
     env: {
       ...process.env,
       ADMIN_PIN: "visual-test-pin",
-      ADMIN_SESSION_SECRET: "visual-test-session-secret",
+      ADMIN_SESSION_SECRET: "visual-test-session-secret-32-chars",
       DATA_DIR: dataDir,
       NODE_ENV: "production",
       PORT: String(port),

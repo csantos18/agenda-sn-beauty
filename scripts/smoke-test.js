@@ -298,6 +298,11 @@ async function cancelAppointment(cookie, id) {
 }
 
 async function cleanupLocalAppointment(cookie, id) {
+  if (process.env.NODE_ENV === "production") {
+    record("local cleanup skipped", true, "production blocks permanent deletion");
+    return;
+  }
+
   if (BASE_URL !== "http://localhost:5175" && BASE_URL !== "http://127.0.0.1:5175") {
     record("local cleanup skipped", true, "published smoke test keeps cancelled audit record");
     return;

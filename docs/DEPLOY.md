@@ -1,131 +1,71 @@
 # Guia De Deploy - Agenda SN Beauty
 
-## Decisao Atual
+## Caminho Oficial
 
-O caminho de teste rapido e a **Vercel**.
+Use o Render como ambiente principal. A Vercel pode ser usada para teste rapido, mas em Vercel o Supabase e obrigatorio porque o armazenamento local e temporario.
 
-O **Render** continua ativo como ambiente atual ate a Vercel ser aprovada.
+## Render
 
-Nao derrubar nenhum ambiente antes de validar o novo link com cliente ou supervisor.
+O arquivo `render.yaml` ja configura:
 
-## Ambientes
+- `NODE_ENV=production`
+- `DATA_DIR=/var/data`
+- disco persistente em `/var/data`
+- `BUSINESS_TIME_ZONE=America/Sao_Paulo`
+- health check em `/api/health`
 
-| Plataforma | Status | Uso |
-| --- | --- | --- |
-| Render | Ativo | Ambiente atual de demonstracao |
-| Vercel | Em teste funcional | Alternativa para abertura mais rapida; falta configurar Supabase para producao |
-| Railway | Pausado | Bloqueou criacao gratuita na conta atual |
-| Koyeb | Descartado agora | Solicitou plano/cartao |
-| Cloudflare Pages | Futuro | Exige separacao maior entre front-end e API |
-
-## Deploy Na Vercel
-
-Arquivos preparados:
-
-- `vercel.json`
-- `api/server.js`
-- `server.js`
-- `package.json`
-
-Configuracao na Vercel:
-
-- Preset: `Express`
-- Root Directory: `./`
-- Branch: `main`
-- Install Command: `npm install`
-- Project Name: `agenda-sn-beauty`
-
-Variaveis obrigatorias:
-
-- `ADMIN_PIN`
-- `ADMIN_SESSION_SECRET`
-- `BUSINESS_TIME_ZONE`
-
-Valor obrigatorio para fuso horario:
+Preencha manualmente no Render:
 
 ```text
+ADMIN_PIN=sua-senha-forte-do-painel
+ADMIN_SESSION_SECRET=uma-chave-aleatoria-com-32-caracteres-ou-mais
+```
+
+Opcionais no Render:
+
+```text
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
+NOTIFICATION_WEBHOOK_URL=https://seu-webhook
+```
+
+Se usar Supabase, execute antes o arquivo `supabase-schema.sql` no SQL Editor do Supabase.
+
+## Vercel
+
+Preencha manualmente na Vercel:
+
+```text
+NODE_ENV=production
+ADMIN_PIN=sua-senha-forte-do-painel
+ADMIN_SESSION_SECRET=uma-chave-aleatoria-com-32-caracteres-ou-mais
 BUSINESS_TIME_ZONE=America/Sao_Paulo
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
 ```
 
-Variaveis obrigatorias para producao real:
-
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-
-Variavel opcional:
-
-- `NOTIFICATION_WEBHOOK_URL`
-
-## Banco De Dados
-
-Para teste visual, o projeto pode abrir sem Supabase.
-
-Para producao real, usar Supabase. Na Vercel, `database.json` nao deve ser tratado como banco definitivo.
-
-Status validado em 2026-05-08:
-
-- Render: online com Supabase ativo e `productionReady=true`.
-- Vercel: online e rapida, mas `/api/health` indica `temporaryStorage=true` enquanto `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` nao estiverem configuradas no projeto da Vercel.
-
-Arquivo de schema:
-
-```text
-supabase-schema.sql
-```
+Sem `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`, a producao na Vercel deve falhar de proposito para evitar perda de agendamentos.
 
 ## Validacao Pos-Deploy
 
-Depois que a Vercel publicar o deploy correto, validar:
+Depois de publicar:
 
-1. Abrir `/`.
-2. Abrir `/api/health`.
-3. Abrir `/admin`.
-4. Criar um agendamento teste.
-5. Entrar no painel admin.
-6. Confirmar que o site abre mais rapido que o Render free.
+1. Abra `/api/health`.
+2. Confirme `status: "ok"`.
+3. Confirme `persistentStorage: true`.
+4. Abra `/admin`.
+5. Entre com o valor de `ADMIN_PIN`.
+6. Crie um agendamento teste.
+7. Confirme o agendamento no painel.
+8. Abra `/api/admin/monitor` logado e confirme `status: "ok"`.
 
-## Regra De Seguranca
+## Regra De Producao
 
-Nao trocar o link oficial para Vercel enquanto:
+Em `NODE_ENV=production`, o app agora trava na inicializacao se faltar:
 
-- a home nao abrir;
-- `/api/health` nao responder;
-- o painel admin nao abrir;
-- o cliente ou supervisor nao aprovar.
+- `ADMIN_PIN`
+- `ADMIN_SESSION_SECRET`
+- `DATA_DIR` persistente ou Supabase
+- Supabase na Vercel
 
-## Referencia Render
-
-O Render continua preservado com:
-
-- `render.yaml`
-- `npm start`
-- `/api/health`
-
-Problema conhecido: no plano gratuito, o primeiro acesso pode demorar porque o servico pode dormir.
-
-## Referencia Railway
-
-O Railway fica apenas como referencia futura.
-
-Arquivo preservado:
-
-```text
-railway.json
-```
-
-Nao e o caminho oficial atual porque a conta exibiu bloqueio para criar novo recurso gratuito.
-
-## Referencia Koyeb
-
-Koyeb foi avaliado, mas nao e o caminho oficial atual.
-
-Motivo:
-
-- solicitou plano/cartao;
-- o objetivo atual e testar sem pagamento;
-- manter Koyeb como principal geraria ambiguidade.
-
-Arquivos Docker preservados para uso futuro:
-
-- `Dockerfile`
-- `.dockerignore`
+Isso evita deploy aparentemente "online" com painel bloqueado ou armazenamento temporario.

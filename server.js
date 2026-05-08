@@ -12,11 +12,13 @@ const app = express();
 wrapAsyncRoutes(app);
 const PORT = process.env.PORT || 5175;
 const IS_VERCEL = Boolean(cleanEnvValue(process.env.VERCEL));
-const DATA_DIR = process.env.DATA_DIR || (IS_VERCEL ? path.join(os.tmpdir(), "agenda-sn-beauty") : __dirname);
+const DATA_DIR_ENV = cleanEnvValue(process.env.DATA_DIR);
+const DATA_DIR = DATA_DIR_ENV || (IS_VERCEL ? path.join(os.tmpdir(), "agenda-sn-beauty") : __dirname);
 const DB_PATH = path.join(DATA_DIR, "database.json");
 const SEED_DB_PATH = path.join(__dirname, "database.json");
 const ADMIN_PIN = normalizeSecret(process.env.ADMIN_PIN);
-const ADMIN_SESSION_SECRET = normalizeSecret(process.env.ADMIN_SESSION_SECRET) || ADMIN_PIN;
+const CONFIGURED_ADMIN_SESSION_SECRET = normalizeSecret(process.env.ADMIN_SESSION_SECRET);
+const ADMIN_SESSION_SECRET = CONFIGURED_ADMIN_SESSION_SECRET || ADMIN_PIN;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const NOTIFICATION_WEBHOOK_URL = process.env.NOTIFICATION_WEBHOOK_URL;
@@ -29,6 +31,7 @@ const supabase =
         auth: { persistSession: false, autoRefreshToken: false },
       })
     : null;
+validateProductionConfig();
 const storageInfo = getStorageInfo();
 const PUBLIC_WRITE_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 25 });
 const PUBLIC_LOOKUP_LIMIT = createRateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
@@ -139,6 +142,55 @@ function normalizeSecret(value) {
     .normalize("NFKC")
     .replace(/[\u200B-\u200D\uFEFF]/g, "")
     .trim();
+}
+
+function validateProductionConfig() {
+  if (process.env.NODE_ENV !== "production") return;
+
+  const missing = [];
+  const weak = [];
+  const hasSupabase = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
+  const hasPersistentDataDir = Boolean(DATA_DIR_ENV);
+
+  if (!ADMIN_PIN) missing.push("ADMIN_PIN");
+  if (!CONFIGURED_ADMIN_SESSION_SECRET) missing.push("ADMIN_SESSION_SECRET");
+  if (SUPABASE_URL && !SUPABASE_SERVICE_ROLE_KEY) missing.push("SUPABASE_SERVICE_ROLE_KEY");
+  if (!SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) missing.push("SUPABASE_URL");
+  if (IS_VERCEL && !hasSupabase) missing.push("SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY para Vercel");
+  if (!hasSupabase && !hasPersistentDataDir) missing.push("DATA_DIR persistente ou Supabase");
+
+  if (ADMIN_PIN && (ADMIN_PIN.length < 8 || isPlaceholderSecret(ADMIN_PIN))) {
+    weak.push("ADMIN_PIN deve ter pelo menos 8 caracteres e nao pode ser valor padrao");
+  }
+  if (
+    CONFIGURED_ADMIN_SESSION_SECRET &&
+    (CONFIGURED_ADMIN_SESSION_SECRET.length < 32 || isPlaceholderSecret(CONFIGURED_ADMIN_SESSION_SECRET))
+  ) {
+    weak.push("ADMIN_SESSION_SECRET deve ter pelo menos 32 caracteres e nao pode ser valor padrao");
+  }
+
+  if (missing.length || weak.length) {
+    const details = [...missing.map((item) => `faltando ${item}`), ...weak].join("; ");
+    throw new Error(`Configuracao de producao incompleta: ${details}.`);
+  }
+}
+
+function isPlaceholderSecret(value) {
+  const normalized = String(value || "")
+    .normalize("NFKC")
+    .trim()
+    .toLowerCase();
+  return [
+    "admin",
+    "admin123",
+    "password",
+    "senha",
+    "senha123",
+    "troque-este-pin",
+    "troque-este-segredo-de-sessao",
+    "seu-segredo-de-sessao",
+    "sua-senha-administrativa",
+  ].includes(normalized);
 }
 
 function safeEqualSecret(first, second) {
