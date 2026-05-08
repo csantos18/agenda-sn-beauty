@@ -213,6 +213,11 @@ function safeEqualSecret(first, second) {
   return crypto.timingSafeEqual(firstHash, secondHash);
 }
 
+function diagnosticCode(value) {
+  if (!value) return null;
+  return crypto.createHash("sha256").update(String(value)).digest("hex").slice(0, 12);
+}
+
 function getStorageInfo() {
   if (supabase) {
     return {
@@ -1061,6 +1066,11 @@ app.get("/api/health", async (req, res) => {
     ...storageInfo,
     productionReady: ready,
     databaseReady: databaseConfigErrors.length === 0,
+    adminPinCheck: {
+      configured: Boolean(ADMIN_PIN),
+      length: ADMIN_PIN ? ADMIN_PIN.length : 0,
+      code: diagnosticCode(ADMIN_PIN),
+    },
     configErrors: allConfigErrors,
   });
 });
