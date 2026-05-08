@@ -172,14 +172,17 @@ function getProductionConfigErrors() {
   if (IS_VERCEL && !hasSupabase) missing.push("SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY para Vercel");
   if (!hasSupabase && !hasPersistentDataDir) missing.push("DATA_DIR persistente ou Supabase");
 
-  if (ADMIN_PIN && (ADMIN_PIN.length < 8 || isPlaceholderSecret(ADMIN_PIN))) {
-    weak.push("ADMIN_PIN deve ter pelo menos 8 caracteres e nao pode ser valor padrao");
+  if (ADMIN_PIN && ADMIN_PIN.length < 8) {
+    weak.push(`ADMIN_PIN deve ter pelo menos 8 caracteres; atual tem ${ADMIN_PIN.length}`);
   }
-  if (
-    CONFIGURED_ADMIN_SESSION_SECRET &&
-    (CONFIGURED_ADMIN_SESSION_SECRET.length < 32 || isPlaceholderSecret(CONFIGURED_ADMIN_SESSION_SECRET))
-  ) {
-    weak.push("ADMIN_SESSION_SECRET deve ter pelo menos 32 caracteres e nao pode ser valor padrao");
+  if (ADMIN_PIN && isPlaceholderSecret(ADMIN_PIN)) {
+    weak.push("ADMIN_PIN nao pode ser valor padrao");
+  }
+  if (CONFIGURED_ADMIN_SESSION_SECRET && CONFIGURED_ADMIN_SESSION_SECRET.length < 32) {
+    weak.push(`ADMIN_SESSION_SECRET deve ter pelo menos 32 caracteres; atual tem ${CONFIGURED_ADMIN_SESSION_SECRET.length}`);
+  }
+  if (CONFIGURED_ADMIN_SESSION_SECRET && isPlaceholderSecret(CONFIGURED_ADMIN_SESSION_SECRET)) {
+    weak.push("ADMIN_SESSION_SECRET nao pode ser valor padrao");
   }
   if (supabaseConfigError) weak.push(supabaseConfigError);
 
@@ -1041,6 +1044,7 @@ app.get("/api/health", (req, res) => {
     status: ready ? "ok" : "degraded",
     app: "Agenda SN Beauty",
     ...storageInfo,
+    productionReady: ready,
     configErrors: productionConfigErrors,
   });
 });
