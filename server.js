@@ -547,21 +547,41 @@ async function isAuditAvailable() {
 }
 
 async function getDatabaseConfigErrors() {
-  if (!supabase) return [];
+  const status = await getDatabaseConfigStatus();
+  return [...status.coreErrors, ...status.auditErrors];
+}
 
-  const errors = [];
+async function getDatabaseConfigStatus() {
+  const status = {
+    coreReady: !supabase,
+    auditReady: !supabase,
+    coreErrors: [],
+    auditErrors: [],
+  };
+
+  if (!supabase) return status;
+
   if (supabaseRuntimeError) {
-    errors.push(`Supabase indisponivel: ${supabaseRuntimeError}`);
+    status.coreErrors.push(`Supabase indisponivel: ${supabaseRuntimeError}`);
   }
 
-  const checks = await Promise.all(
-    ["appointments", "reviews", "audit_logs"].map(async (table) => {
-      const { error } = await supabase.from(table).select("id").limit(1);
-      return error ? `Supabase sem acesso a tabela ${table}: ${error.message}` : "";
-    }),
-  );
+  const [appointmentsError, reviewsError, auditError] = await Promise.all([
+    checkSupabaseTable("appointments"),
+    checkSupabaseTable("reviews"),
+    checkSupabaseTable("audit_logs"),
+  ]);
 
-  return [...errors, ...checks.filter(Boolean)];
+  status.coreErrors.push(...[appointmentsError, reviewsError].filter(Boolean));
+  status.auditErrors.push(...[auditError].filter(Boolean));
+  status.coreReady = status.coreErrors.length === 0;
+  status.auditReady = status.auditErrors.length === 0;
+
+  return status;
+}
+
+async function checkSupabaseTable(table) {
+  const { error } = await supabase.from(table).select("id").limit(1);
+  return error ? `Supabase sem acesso a tabela ${table}: ${error.message}` : "";
 }
 
 async function recordAudit(action, details = {}) {
@@ -1136,23 +1156,29 @@ function appointmentValidationStatus(error) {
 }
 
 app.get("/api/health", async (req, res) => {
-  const databaseConfigErrors = await getDatabaseConfigErrors();
-  const allConfigErrors = [...productionConfigErrors, ...databaseConfigErrors];
+  const databaseConfigStatus = await getDatabaseConfigStatus();
+  const allConfigErrors = [
+    ...productionConfigErrors,
+    ...databaseConfigStatus.coreErrors,
+    ...databaseConfigStatus.auditErrors,
+  ];
   const ready = storageInfo.productionReady && allConfigErrors.length === 0;
   res.status(ready ? 200 : 503).json({
     status: ready ? "ok" : "degraded",
     app: "Agenda SN Beauty",
     ...storageInfo,
     productionReady: ready,
-    databaseReady: databaseConfigErrors.length === 0,
+    databaseReady: databaseConfigStatus.coreReady,
+    auditReady: databaseConfigStatus.auditReady,
     configErrors: allConfigErrors,
   });
 });
 
 app.get("/api/admin/monitor", requireAdmin, async (req, res) => {
   const db = await readDb();
-  const databaseConfigErrors = await getDatabaseConfigErrors();
-  const databaseReady = databaseConfigErrors.length === 0;
+  const databaseConfigStatus = await getDatabaseConfigStatus();
+  const databaseConfigErrors = [...databaseConfigStatus.coreErrors, ...databaseConfigStatus.auditErrors];
+  const databaseReady = databaseConfigStatus.coreReady && databaseConfigStatus.auditReady;
   const monitorStorageInfo = databaseReady
     ? storageInfo
     : {
@@ -1170,7 +1196,8 @@ app.get("/api/admin/monitor", requireAdmin, async (req, res) => {
     status: "ok",
     ...monitorStorageInfo,
     supabaseConfigured: Boolean(supabase),
-    databaseReady,
+    databaseReady: databaseConfigStatus.coreReady,
+    auditReady: databaseConfigStatus.auditReady,
     databaseErrors: databaseConfigErrors,
     notificationsConfigured: Boolean(NOTIFICATION_WEBHOOK_URL),
     today,

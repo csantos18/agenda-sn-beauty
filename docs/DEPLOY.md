@@ -29,7 +29,7 @@ SUPABASE_SERVICE_ROLE_KEY=sua-chave-secret-ou-service-role
 NOTIFICATION_WEBHOOK_URL=https://seu-webhook
 ```
 
-Se usar Supabase, execute antes o arquivo `supabase-schema.sql` no SQL Editor do Supabase.
+Se usar Supabase, execute antes o arquivo `supabase-schema.sql` no SQL Editor do Supabase. Se apenas a auditoria estiver faltando, execute `supabase-audit-schema.sql`.
 
 ## Vercel
 
@@ -62,11 +62,12 @@ Depois de publicar:
 1. Abra `/api/health`.
 2. Confirme `status: "ok"`.
 3. Confirme `persistentStorage: true`.
-4. Abra `/admin`.
-5. Entre com o valor de `ADMIN_PIN`.
-6. Crie um agendamento teste.
-7. Confirme o agendamento no painel.
-8. Abra `/api/admin/monitor` logado e confirme `status: "ok"`.
+4. Confirme `databaseReady: true` e `auditReady: true`.
+5. Abra `/admin`.
+6. Entre com o valor de `ADMIN_PIN`.
+7. Crie um agendamento teste.
+8. Confirme o agendamento no painel.
+9. Abra `/api/admin/monitor` logado e confirme `status: "ok"`.
 
 ## Regra De Producao
 

@@ -18,25 +18,21 @@ Data: 2026-05-08
 
 ## Bloqueio Unico
 
-O bloqueio atual de producao final e a chave secreta do Supabase:
+O bloqueio atual de producao final e a tabela de auditoria do Supabase:
 
 ```text
-Invalid API key
+public.audit_logs
 ```
 
-Corrigir somente uma variavel na Vercel:
+Executar no SQL Editor do Supabase:
 
 ```text
-SUPABASE_SERVICE_ROLE_KEY
+supabase-audit-schema.sql
 ```
 
-Alternativa aceita pelo app:
+Nao mexer em `ADMIN_PIN`, `ADMIN_SESSION_SECRET`, `BUSINESS_TIME_ZONE`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` ou `SUPABASE_SECRET_KEY` enquanto o erro atual for tabela `audit_logs` ausente.
 
-```text
-SUPABASE_SECRET_KEY
-```
-
-Nao mexer em `ADMIN_PIN`, `ADMIN_SESSION_SECRET`, `BUSINESS_TIME_ZONE` ou `SUPABASE_URL` enquanto o erro atual for `Invalid API key`.
+Chave secreta do Supabase: corrigida.
 
 ## Implementacao De Diagnostico
 
