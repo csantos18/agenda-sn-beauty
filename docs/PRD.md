@@ -332,7 +332,8 @@ O site deve expor dados estruturados para mecanismos de busca, incluindo nome do
 - `docs/POLITICA_PRIVACIDADE_LGPD.md`: politica de privacidade e LGPD.
 - `supabase-schema.sql`: estrutura de banco para Supabase.
 - `render.yaml`: configuracao do deploy atual no Render.
-- `railway.json`: configuracao do deploy em teste no Railway.
+- `vercel.json`: configuracao do deploy em teste na Vercel.
+- `railway.json`: configuracao preservada para retomada futura.
 
 ## 16. Resumo Executivo
 

@@ -1414,7 +1414,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Erro interno. Tente novamente em alguns instantes." });
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Agenda SN Beauty rodando em http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Agenda SN Beauty rodando em http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
 

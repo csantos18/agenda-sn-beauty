@@ -28,13 +28,14 @@ Observacao:
 
 ### Railway
 
-Status: caminho oficial atual para teste.
+Status: descartado por enquanto para a conta atual.
 
 Motivo:
 
 - aceita projeto Node.js/Express;
 - exige menos refatoracao que Cloudflare Workers ou Vercel Functions;
 - e mais parecido com a arquitetura atual do Agenda SN Beauty.
+- porem a conta usada exibiu bloqueio para criar novo recurso gratuito.
 
 Arquivos relacionados:
 
@@ -59,12 +60,17 @@ Uso recomendado:
 
 ### Vercel
 
-Status: opcao futura para front-end ou API serverless com adaptacao.
+Status: caminho oficial atual para novo teste.
 
 Motivo:
 
 - otima para front-end;
-- o backend Express atual precisaria adaptacao.
+- possui plano Hobby;
+- o backend Express foi adaptado para API serverless usando `api/server.js`.
+
+Condicao obrigatoria:
+
+- usar Supabase em producao, pois `database.json` nao e banco definitivo em ambiente serverless.
 
 ### Supabase
 
@@ -79,11 +85,11 @@ Uso atual/futuro:
 
 ## Decisao atual
 
-Seguir com Railway como teste em paralelo.
+Seguir com Vercel como teste em paralelo.
 
 Nao derrubar Render ate:
 
-1. Railway publicar com sucesso.
+1. Vercel publicar com sucesso.
 2. `/api/health` responder.
 3. Site publico abrir rapido.
 4. Agendamento funcionar.

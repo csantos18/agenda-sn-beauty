@@ -36,13 +36,71 @@ Os arquivos `Dockerfile` e `.dockerignore` continuam no projeto porque podem ser
 
 ## Railway
 
-Opcao oficial atual para testar o projeto completo sem reescrever o backend.
+Railway foi preparado como alternativa, mas a conta usada exibiu bloqueio para criar novo recurso gratuito.
 
 Arquivos preparados:
 
 - `railway.json`
 - `package.json`
 - `server.js`
+
+Status atual:
+
+- manter como opcao futura;
+- nao tratar como caminho principal enquanto exigir upgrade.
+
+## Vercel
+
+Opcao oficial atual apos Koyeb e Railway exigirem upgrade/pagamento.
+
+Arquivos preparados:
+
+- `vercel.json`
+- `api/server.js`
+- `server.js`
+
+Configuracao esperada:
+
+- Framework Preset: Other.
+- Install Command: `npm install`.
+- API: rotas `/api/*` redirecionadas para `api/server.js`.
+- Front-end: arquivos estaticos na raiz do projeto.
+
+Variaveis obrigatorias:
+
+- `ADMIN_PIN`
+- `ADMIN_SESSION_SECRET`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Variaveis recomendadas:
+
+- `PRODUCTION_ORIGIN`: URL final da Vercel.
+- `BUSINESS_TIME_ZONE`: `America/Sao_Paulo`.
+
+Variavel opcional:
+
+- `NOTIFICATION_WEBHOOK_URL`
+
+Observacao importante:
+
+Na Vercel, o projeto deve usar Supabase em producao. O arquivo `database.json` e apenas fallback local/desenvolvimento e nao deve ser tratado como banco definitivo em ambiente serverless.
+
+Estrategia:
+
+1. Criar projeto Vercel conectado ao GitHub.
+2. Usar o repositorio `agenda-sn-beauty`.
+3. Configurar variaveis.
+4. Aguardar deploy.
+5. Abrir `/api/health`.
+6. Confirmar que `storage` retorna `supabase`.
+7. Testar site publico, agenda e painel admin.
+8. Comparar tempo de abertura com Render.
+9. Manter Render ativo ate aprovar Vercel.
+
+## Referencia Railway
+
+Configuracao ja preparada para eventual retomada:
 
 Configuracao esperada:
 
@@ -61,17 +119,6 @@ Variaveis obrigatorias:
 Variavel opcional:
 
 - `NOTIFICATION_WEBHOOK_URL`
-
-Estrategia:
-
-1. Criar projeto Railway conectado ao GitHub.
-2. Usar o repositorio `agenda-sn-beauty`.
-3. Configurar variaveis.
-4. Aguardar deploy.
-5. Abrir `/api/health`.
-6. Testar site publico, agenda e painel admin.
-7. Comparar tempo de abertura com Render.
-8. Manter Render ativo ate aprovar Railway.
 
 ## Variaveis Principais
 

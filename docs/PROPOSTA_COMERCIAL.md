@@ -13,7 +13,7 @@ Sistema de agendamento online para estudios de beleza, com fluxo publico, painel
 - Avaliacoes moderadas.
 - Exportacao CSV.
 - Backup JSON.
-- Deploy orientado para Supabase, com Render como ambiente atual e Railway como alternativa em teste.
+- Deploy orientado para Supabase, com Render como ambiente atual e Vercel como alternativa em teste.
 - Documentacao completa.
 
 ## Implantacao Sugerida

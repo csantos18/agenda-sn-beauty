@@ -24,8 +24,8 @@ Cada documento tem uma responsabilidade principal:
 - `PRD.md`: produto, requisitos, regras de negocio e roadmap.
 - `RELATORIO_TECNICO.md`: arquitetura, tecnologias e funcionamento tecnico.
 - `RESPONSIVIDADE_CONTENT_FIRST.md`: regra oficial de responsividade e comportamento dos grids/cards.
-- `DEPLOY.md`: publicacao, ambiente e variaveis.
-- `DECISOES_DEPLOY.md`: historico das opcoes avaliadas e decisao oficial atual.
+- `DEPLOY.md`: publicacao, ambiente, variaveis e passos praticos de deploy.
+- `DECISOES_DEPLOY.md`: historico das opcoes avaliadas e decisao oficial atual de plataforma.
 - `OPERACAO_CLIENTE.md`: uso diario pela cliente.
 - `ROTEIRO_APRESENTACAO.md`: fala de apresentacao do projeto.
 - `PROPOSTA_COMERCIAL.md`: oferta, valor e posicionamento comercial.
