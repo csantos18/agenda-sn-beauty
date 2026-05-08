@@ -188,6 +188,8 @@ function getProductionConfigErrors() {
   if (!SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) missing.push("SUPABASE_URL");
   if (IS_VERCEL && !hasSupabase) missing.push("SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY para Vercel");
   if (!hasSupabase && !hasPersistentDataDir) missing.push("DATA_DIR persistente ou Supabase");
+  const supabaseKeyProblem = describeSupabaseServerKeyProblem(SUPABASE_SERVICE_ROLE_KEY);
+  if (supabaseKeyProblem) weak.push(supabaseKeyProblem);
   if (SUPABASE_SERVICE_ROLE_KEY && isPublicSupabaseKey(SUPABASE_SERVICE_ROLE_KEY)) {
     weak.push("SUPABASE_SERVICE_ROLE_KEY deve ser chave secreta/service_role, nao anon/publishable");
   }
@@ -207,6 +209,39 @@ function getProductionConfigErrors() {
   if (supabaseConfigError) weak.push(supabaseConfigError);
 
   return [...missing.map((item) => `faltando ${item}`), ...weak];
+}
+
+function describeSupabaseServerKeyProblem(value) {
+  const key = String(value || "").trim();
+  if (!key) return "";
+  if (/^[•*]+$/.test(key)) {
+    return "SUPABASE_SERVICE_ROLE_KEY parece valor mascarado copiado da tela; cole a chave real, nao os pontos";
+  }
+  if (isPlaceholderSupabaseKey(key)) {
+    return "SUPABASE_SERVICE_ROLE_KEY ainda esta com valor de exemplo/placeholder";
+  }
+  if (key.length < 32) {
+    return `SUPABASE_SERVICE_ROLE_KEY curta demais; atual tem ${key.length} caracteres`;
+  }
+  if (!isSupportedSupabaseServerKeyShape(key)) {
+    return "SUPABASE_SERVICE_ROLE_KEY nao tem formato reconhecido de chave secreta do Supabase";
+  }
+  return "";
+}
+
+function isPlaceholderSupabaseKey(value) {
+  return [
+    "sua-chave-secret-ou-service-role",
+    "sua-chave-secret",
+    "sua-service-role-key",
+    "cole_aqui_a_chave_service_role_do_supabase",
+    "cole-aqui-a-chave-service-role-do-supabase",
+  ].includes(String(value || "").trim().toLowerCase());
+}
+
+function isSupportedSupabaseServerKeyShape(value) {
+  const key = String(value || "").trim();
+  return key.startsWith("sb_secret_") || key.startsWith("sbp_") || key.split(".").length === 3;
 }
 
 function isPublicSupabaseKey(value) {

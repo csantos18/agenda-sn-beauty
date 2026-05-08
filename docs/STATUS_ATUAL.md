@@ -38,6 +38,16 @@ SUPABASE_SECRET_KEY
 
 Nao mexer em `ADMIN_PIN`, `ADMIN_SESSION_SECRET`, `BUSINESS_TIME_ZONE` ou `SUPABASE_URL` enquanto o erro atual for `Invalid API key`.
 
+## Implementacao De Diagnostico
+
+O app valida a chave do Supabase antes e durante o uso:
+
+- bloqueia chave publica `anon`/`publishable`;
+- identifica valor mascarado copiado da tela, como `••••`;
+- identifica placeholder de documentacao;
+- aceita `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_SECRET_KEY` e `SUPABASE_SECRET_KEYS`;
+- mantem a interface online em modo degradado enquanto a chave real nao for corrigida.
+
 ## Criterio Para Declarar Producao Final
 
 O projeto so deve ser declarado pronto para producao quando:
@@ -50,4 +60,3 @@ O projeto so deve ser declarado pronto para producao quando:
   "configErrors": []
 }
 ```
-
