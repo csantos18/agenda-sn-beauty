@@ -20,7 +20,9 @@ const ADMIN_PIN = normalizeSecret(process.env.ADMIN_PIN);
 const CONFIGURED_ADMIN_SESSION_SECRET = normalizeSecret(process.env.ADMIN_SESSION_SECRET);
 const ADMIN_SESSION_SECRET = CONFIGURED_ADMIN_SESSION_SECRET || ADMIN_PIN;
 const SUPABASE_URL = cleanEnvValue(process.env.SUPABASE_URL);
-const SUPABASE_SERVICE_ROLE_KEY = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
+const SUPABASE_SERVICE_ROLE_KEY = cleanEnvValue(
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY,
+);
 const NOTIFICATION_WEBHOOK_URL = process.env.NOTIFICATION_WEBHOOK_URL;
 const PRODUCTION_ORIGIN = cleanEnvValue(process.env.PRODUCTION_ORIGIN) || "https://agenda-sn-beauty.onrender.com";
 const LOCAL_REDIRECT_TO_PRODUCTION = cleanEnvValue(process.env.LOCAL_REDIRECT_TO_PRODUCTION) === "true";
@@ -212,11 +214,6 @@ function safeEqualSecret(first, second) {
   const firstHash = crypto.createHash("sha256").update(String(first || "")).digest();
   const secondHash = crypto.createHash("sha256").update(String(second || "")).digest();
   return crypto.timingSafeEqual(firstHash, secondHash);
-}
-
-function diagnosticCode(value) {
-  if (!value) return null;
-  return crypto.createHash("sha256").update(String(value)).digest("hex").slice(0, 12);
 }
 
 function getStorageInfo() {
@@ -1081,17 +1078,22 @@ app.get("/api/health", async (req, res) => {
     ...storageInfo,
     productionReady: ready,
     databaseReady: databaseConfigErrors.length === 0,
-    adminPinCheck: {
-      configured: Boolean(ADMIN_PIN),
-      length: ADMIN_PIN ? ADMIN_PIN.length : 0,
-      code: diagnosticCode(ADMIN_PIN),
-    },
     configErrors: allConfigErrors,
   });
 });
 
 app.get("/api/admin/monitor", requireAdmin, async (req, res) => {
   const db = await readDb();
+  const databaseConfigErrors = await getDatabaseConfigErrors();
+  const databaseReady = databaseConfigErrors.length === 0;
+  const monitorStorageInfo = databaseReady
+    ? storageInfo
+    : {
+        ...storageInfo,
+        storageLabel: "Supabase com erro",
+        persistentStorage: false,
+        productionReady: false,
+      };
   const today = todayISO();
   const todayAppointments = db.appointments.filter((appointment) => appointment.date === today);
   const pending = db.appointments.filter((appointment) => normalizeAppointmentStatus(appointment.status) === "pendente");
@@ -1099,8 +1101,10 @@ app.get("/api/admin/monitor", requireAdmin, async (req, res) => {
 
   res.json({
     status: "ok",
-    ...storageInfo,
+    ...monitorStorageInfo,
     supabaseConfigured: Boolean(supabase),
+    databaseReady,
+    databaseErrors: databaseConfigErrors,
     notificationsConfigured: Boolean(NOTIFICATION_WEBHOOK_URL),
     today,
     appointments: db.appointments.length,

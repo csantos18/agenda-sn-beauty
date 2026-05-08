@@ -174,7 +174,9 @@ function renderMonitor(data) {
     return;
   }
 
-  const storageLabel = data.storageLabel || (data.storage === "supabase" ? "Supabase ativo" : "Arquivo local");
+  const storageLabel =
+    data.storageLabel ||
+    (data.databaseReady === false ? "Supabase com erro" : data.storage === "supabase" ? "Supabase ativo" : "Arquivo local");
   const backupLabel = data.persistentStorage ? "Exportação segura" : "Temporário";
 
   adminMonitorPanel.innerHTML = `
