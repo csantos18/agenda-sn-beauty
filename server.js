@@ -26,6 +26,7 @@ const PRODUCTION_ORIGIN = cleanEnvValue(process.env.PRODUCTION_ORIGIN) || "https
 const LOCAL_REDIRECT_TO_PRODUCTION = cleanEnvValue(process.env.LOCAL_REDIRECT_TO_PRODUCTION) === "true";
 const BUSINESS_TIME_ZONE = process.env.BUSINESS_TIME_ZONE || "America/Sao_Paulo";
 let supabaseConfigError = "";
+let supabaseRuntimeError = "";
 const supabase = createSupabaseClient();
 const productionConfigErrors = getProductionConfigErrors();
 const storageInfo = getStorageInfo();
@@ -364,8 +365,17 @@ async function readSupabaseDb() {
       supabase.from("reviews").select("*").order("id", { ascending: false }),
     ]);
 
-  if (appointmentsError) throw appointmentsError;
-  if (reviewsError) throw reviewsError;
+  if (appointmentsError || reviewsError) {
+    supabaseRuntimeError = appointmentsError?.message || reviewsError?.message || "Erro ao ler Supabase";
+    console.warn(`Supabase indisponível, usando dados iniciais: ${supabaseRuntimeError}`);
+    return {
+      ...seed,
+      appointments: [],
+      reviews: [],
+    };
+  }
+
+  supabaseRuntimeError = "";
 
   return {
     ...seed,
@@ -475,6 +485,11 @@ async function isAuditAvailable() {
 async function getDatabaseConfigErrors() {
   if (!supabase) return [];
 
+  const errors = [];
+  if (supabaseRuntimeError) {
+    errors.push(`Supabase indisponivel: ${supabaseRuntimeError}`);
+  }
+
   const checks = await Promise.all(
     ["appointments", "reviews", "audit_logs"].map(async (table) => {
       const { error } = await supabase.from(table).select("id").limit(1);
@@ -482,7 +497,7 @@ async function getDatabaseConfigErrors() {
     }),
   );
 
-  return checks.filter(Boolean);
+  return [...errors, ...checks.filter(Boolean)];
 }
 
 async function recordAudit(action, details = {}) {
