@@ -5,6 +5,13 @@
       "includeFiles": "{index.html,admin.html,termos.html,styles.css,script.js,admin.js,database.json}"
     }
   },
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/index.html",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
