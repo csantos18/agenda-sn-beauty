@@ -15,6 +15,7 @@ Sistema web de agendamento para o **Sarah Neves Beauty Studio**, criado para tra
 - [Demo online](https://agenda-sn-beauty.onrender.com)
 - [PRD do produto](docs/PRD.md)
 - [Relatório técnico](docs/RELATORIO_TECNICO.md)
+- [Responsividade content-first](docs/RESPONSIVIDADE_CONTENT_FIRST.md)
 - [Guia de deploy](docs/DEPLOY.md)
 - [Operação do cliente](docs/OPERACAO_CLIENTE.md)
 - [Roteiro de apresentação](docs/ROTEIRO_APRESENTACAO.md)
