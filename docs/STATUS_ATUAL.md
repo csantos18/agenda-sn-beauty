@@ -14,25 +14,15 @@ Data: 2026-05-08
 - Painel admin: abre.
 - API de servicos: responde.
 - Senha admin validada: `ADMIN_PIN` configurado.
-- Health: `503 degraded`.
+- Health: `200 ok`.
+- Banco principal: `databaseReady=true`.
+- Auditoria: `auditReady=true`.
 
-## Bloqueio Unico
+## Veredito
 
-O bloqueio atual de producao final e a tabela de auditoria do Supabase:
+Producao aprovada na Vercel.
 
-```text
-public.audit_logs
-```
-
-Executar no SQL Editor do Supabase:
-
-```text
-supabase-audit-schema.sql
-```
-
-Nao mexer em `ADMIN_PIN`, `ADMIN_SESSION_SECRET`, `BUSINESS_TIME_ZONE`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` ou `SUPABASE_SECRET_KEY` enquanto o erro atual for tabela `audit_logs` ausente.
-
-Chave secreta do Supabase: corrigida.
+Supabase, chave secreta, banco principal e auditoria estao ativos. Nao ha bloqueio atual em `/api/health`.
 
 ## Implementacao De Diagnostico
 
@@ -46,7 +36,7 @@ O app valida a chave do Supabase antes e durante o uso:
 
 ## Criterio Para Declarar Producao Final
 
-O projeto so deve ser declarado pronto para producao quando:
+O projeto esta aprovado enquanto `/api/health` responder:
 
 ```json
 {
