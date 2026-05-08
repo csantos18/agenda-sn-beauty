@@ -1,30 +1,21 @@
 {
   "version": 2,
-  "functions": {
-    "api/server.js": {
-      "includeFiles": [
-        "index.html",
-        "admin.html",
-        "termos.html",
-        "styles.css",
-        "script.js",
-        "admin.js",
-        "database.json"
-      ]
-    }
-  },
   "rewrites": [
     {
-      "source": "/",
+      "source": "/api/(.*)",
       "destination": "/api/server.js"
     },
     {
-      "source": "/index.html",
-      "destination": "/api/server.js"
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/termos",
+      "destination": "/termos.html"
     },
     {
       "source": "/(.*)",
-      "destination": "/api/server.js"
+      "destination": "/index.html"
     }
   ]
 }
