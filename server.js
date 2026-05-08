@@ -467,6 +467,19 @@ async function isAuditAvailable() {
   return true;
 }
 
+async function getDatabaseConfigErrors() {
+  if (!supabase) return [];
+
+  const checks = await Promise.all(
+    ["appointments", "reviews", "audit_logs"].map(async (table) => {
+      const { error } = await supabase.from(table).select("id").limit(1);
+      return error ? `Supabase sem acesso a tabela ${table}: ${error.message}` : "";
+    }),
+  );
+
+  return checks.filter(Boolean);
+}
+
 async function recordAudit(action, details = {}) {
   const entry = {
     id: crypto.randomUUID(),
@@ -1038,14 +1051,17 @@ function appointmentValidationStatus(error) {
   return error.includes("conflita") ? 409 : 400;
 }
 
-app.get("/api/health", (req, res) => {
-  const ready = storageInfo.productionReady && productionConfigErrors.length === 0;
+app.get("/api/health", async (req, res) => {
+  const databaseConfigErrors = await getDatabaseConfigErrors();
+  const allConfigErrors = [...productionConfigErrors, ...databaseConfigErrors];
+  const ready = storageInfo.productionReady && allConfigErrors.length === 0;
   res.status(ready ? 200 : 503).json({
     status: ready ? "ok" : "degraded",
     app: "Agenda SN Beauty",
     ...storageInfo,
     productionReady: ready,
-    configErrors: productionConfigErrors,
+    databaseReady: databaseConfigErrors.length === 0,
+    configErrors: allConfigErrors,
   });
 });
 
